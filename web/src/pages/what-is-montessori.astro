@@ -1,0 +1,95 @@
+---
+export const prerender = false;
+
+import Layout from "../layouts/Layout.astro";
+import FindCampusCta from "../components/FindCampusCta.astro";
+import FaqAccordion from "../components/FaqAccordion.astro";
+import { sanityClient, urlFor } from "../lib/sanity";
+import { MONTESSORI_PAGE_QUERY } from "../lib/queries";
+
+const fallback = {
+  eyebrow: "The Innovator & Her Methods",
+  headingLine1: "Maria",
+  headingLine2: "Montessori.",
+  bioText: "Maria Montessori was an Italian physician, anthropologist, scientist, and educator who dedicated her life to understanding how children learn.",
+  portraitImage: null,
+  programsHeading: "Illuminate Montessori's early-childhood programs provide:",
+  features: [
+    { title: "Intentionally-designed learning materials", description: "Each classroom contains a sequence of captivating, hands-on learning materials that build on one another systematically." },
+    { title: "A curriculum for independence", description: "We provide meaningful opportunities for children to care for themselves and build genuine independence." },
+    { title: "One-on-one guidance and support", description: "Guides form personal connections with each child and observe them closely to understand their individual needs." },
+    { title: "A supportive, mixed-age community", description: "Every classroom is mixed-age by design, so children learn to collaborate and lead." },
+  ],
+  beliefHeading: "At Illuminate Montessori, we believe every child is tremendously capable.",
+  beliefText: "Every day, our children accomplish big work, solve real problems, make choices, and experience the satisfaction of learning through their own effort.",
+  quoteText: "The education of even a small child does not aim at preparing him for school, but for life.",
+  faqs: [],
+};
+
+const data = sanityClient ? ((await sanityClient.fetch(MONTESSORI_PAGE_QUERY)) ?? fallback) : fallback;
+const portraitUrl = data.portraitImage ? urlFor(data.portraitImage) : "/images/core/maria-montessori.webp";
+---
+
+<Layout title="What is Montessori?" description="Learn about Maria Montessori and the authentic Montessori method at Illuminate.">
+  <section class="bg-cream">
+    <div class="mx-auto max-w-6xl px-6 lg:px-8 pt-16 pb-16 grid gap-10 lg:grid-cols-2 items-center">
+      <div>
+        <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">{data.eyebrow}</p>
+        <h1 class="mt-4 font-serif text-5xl sm:text-6xl text-ink leading-tight">
+          {data.headingLine1}
+          <br />
+          <span class="text-teal-400">{data.headingLine2}</span>
+        </h1>
+      </div>
+      <div>
+        <img src={portraitUrl} alt="Maria Montessori" class="rounded-2xl w-full h-80 object-cover" />
+      </div>
+    </div>
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 pb-16">
+      {data.bioText.split("\n\n").map((p: string) => (
+        <p class="text-slate leading-relaxed mb-4">{p}</p>
+      ))}
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 lg:px-8 py-20">
+    <h2 class="text-center font-serif text-3xl text-ink max-w-2xl mx-auto">{data.programsHeading}</h2>
+    <div class="mt-14 space-y-14">
+      {data.features.map((f: any, i: number) => (
+        <div class={`grid gap-8 lg:grid-cols-2 items-center ${i % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""}`}>
+          <div class="rounded-2xl bg-teal-light h-56 flex items-center justify-center">
+            <span class="font-serif text-5xl text-teal-300">{i + 1}</span>
+          </div>
+          <div>
+            <h3 class="font-serif text-xl text-ink">{f.title}</h3>
+            {f.description.split("\n\n").map((p: string) => (
+              <p class="mt-3 text-sm leading-relaxed text-slate">{p}</p>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="bg-teal-500">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 py-20 text-center">
+      <h2 class="font-serif text-2xl sm:text-3xl text-white">{data.beliefHeading}</h2>
+      {data.beliefText.split("\n\n").map((p: string) => (
+        <p class="mt-4 text-teal-100 leading-relaxed">{p}</p>
+      ))}
+      <p class="mt-8 font-serif text-xl italic text-white">"{data.quoteText}"</p>
+      <p class="mt-2 text-sm text-teal-100">— Maria Montessori</p>
+    </div>
+  </section>
+
+  {data.faqs?.length > 0 && (
+    <section class="mx-auto max-w-3xl px-6 lg:px-8 py-16">
+      <h2 class="font-serif text-3xl text-ink text-center mb-8">Frequently Asked Questions</h2>
+      <FaqAccordion faqs={data.faqs} />
+    </section>
+  )}
+
+  <section class="py-16">
+    <FindCampusCta />
+  </section>
+</Layout>

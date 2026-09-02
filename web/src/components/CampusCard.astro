@@ -1,0 +1,21 @@
+---
+interface Props {
+  name: string;
+  slug: string;
+  region: string;
+}
+
+const { name, slug, region } = Astro.props;
+const stateAbbr: Record<string, string> = { Virginia: "VA", Massachusetts: "MA", Texas: "TX" };
+---
+
+<a
+  href={`/${slug}/`}
+  class="group flex items-center justify-between rounded-xl border border-black/5 bg-white px-5 py-4 hover:border-teal-300 hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] transition-all"
+>
+  <div>
+    <p class="font-medium text-ink">{name}</p>
+    <p class="text-xs text-slate">{stateAbbr[region] ?? region}</p>
+  </div>
+  <span class="text-xs font-medium text-teal-500 group-hover:text-teal-600">Schedule a Tour →</span>
+</a>

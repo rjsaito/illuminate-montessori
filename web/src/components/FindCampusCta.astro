@@ -1,0 +1,18 @@
+---
+interface Props {
+  class?: string;
+}
+const { class: className = "" } = Astro.props;
+---
+
+<div class={`text-center ${className}`}>
+  <a
+    href="/our-schools/"
+    class="inline-flex items-center rounded-full bg-teal-400 px-7 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors"
+  >
+    Find a School Near You
+  </a>
+  <p class="mt-3 text-xs tracking-[0.15em] text-slate uppercase">
+    10 Campuses · 8 in Virginia & 2 in Massachusetts
+  </p>
+</div>

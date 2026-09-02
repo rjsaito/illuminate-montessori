@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { getAllCampuses } from "../lib/campuses";
 
 interface Props {
   title: string;
@@ -8,11 +9,14 @@ interface Props {
 
 const { title, description = "Montessori education for the whole child." } = Astro.props;
 
+const campuses = await getAllCampuses();
+const findCampuses = campuses.filter((c) => c.showOnFindCampus !== false && c.region !== "Texas");
+const texasCampuses = campuses.filter((c) => c.region === "Texas");
+
 const navLinks = [
-  { label: "Find Your Campus", href: "/campuses/" },
-  { label: "What is Montessori?", href: "/montessori/" },
+  { label: "What is Montessori?", href: "/what-is-montessori/" },
   { label: "Admissions", href: "/admissions/" },
-  { label: "Tuition", href: "/" },
+  { label: "Tuition", href: "/tuition/" },
   { label: "About", href: "/about/" },
 ];
 ---
@@ -34,7 +38,7 @@ const navLinks = [
     />
   </head>
   <body class="bg-white text-slate">
-    <header class="border-b border-black/5">
+    <header class="border-b border-black/5 relative z-50">
       <div class="mx-auto max-w-7xl px-6 lg:px-8 h-20 flex items-center justify-between">
         <a href="/" class="flex items-center gap-2 font-serif text-xl text-ink">
           <svg class="w-7 h-7 text-teal-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -44,9 +48,37 @@ const navLinks = [
         </a>
 
         <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-ink/80">
+          <div class="group relative">
+            <button class="flex items-center gap-1 hover:text-teal-500 transition-colors">
+              Find Your Campus
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+            <div class="invisible absolute left-0 top-full w-56 rounded-xl border border-black/5 bg-white py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100">
+              {findCampuses.map((c) => (
+                <a href={`/${c.slug}/`} class="block px-4 py-2 text-sm hover:bg-teal-light hover:text-teal-600">{c.name}</a>
+              ))}
+              <div class="my-1 border-t border-black/5"></div>
+              <a href="/our-schools/" class="block px-4 py-2 text-sm font-medium text-teal-500 hover:bg-teal-light">See All Campuses</a>
+            </div>
+          </div>
+
           {navLinks.map((link) => (
             <a href={link.href} class="hover:text-teal-500 transition-colors">{link.label}</a>
           ))}
+
+          {texasCampuses.length > 0 && (
+            <div class="group relative">
+              <button class="flex items-center gap-1 hover:text-teal-500 transition-colors">
+                Texas Schools
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
+              </button>
+              <div class="invisible absolute right-0 top-full w-56 rounded-xl border border-black/5 bg-white py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100">
+                {texasCampuses.map((c) => (
+                  <a href={`/${c.slug}/`} class="block px-4 py-2 text-sm hover:bg-teal-light hover:text-teal-600">{c.name}</a>
+                ))}
+              </div>
+            </div>
+          )}
         </nav>
 
         <a
@@ -63,11 +95,37 @@ const navLinks = [
     </main>
 
     <footer class="border-t border-black/5 bg-cream">
-      <div class="mx-auto max-w-7xl px-6 lg:px-8 py-12 text-sm text-slate flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p>&copy; {new Date().getFullYear()} Illuminate Montessori. All rights reserved.</p>
-        <div class="flex gap-6">
-          <a href="/contact/" class="hover:text-teal-500">Contact</a>
-          <a href="/campuses/" class="hover:text-teal-500">Campuses</a>
+      <div class="mx-auto max-w-7xl px-6 lg:px-8 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <a href="/" class="flex items-center gap-2 font-serif text-lg text-ink">Illuminate Montessori</a>
+          <p class="mt-3 text-sm text-slate">A place families trust, and children love.</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold tracking-wider text-ink uppercase">Explore</p>
+          <ul class="mt-3 space-y-2 text-sm">
+            <li><a href="/what-is-montessori/" class="hover:text-teal-500">What is Montessori?</a></li>
+            <li><a href="/admissions/" class="hover:text-teal-500">Admissions</a></li>
+            <li><a href="/tuition/" class="hover:text-teal-500">Tuition</a></li>
+            <li><a href="/about/" class="hover:text-teal-500">About</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-semibold tracking-wider text-ink uppercase">Campuses</p>
+          <ul class="mt-3 space-y-2 text-sm">
+            <li><a href="/our-schools/" class="hover:text-teal-500">Find Your Campus</a></li>
+            <li><a href="/contact/" class="hover:text-teal-500">Schedule a Tour</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-semibold tracking-wider text-ink uppercase">Contact</p>
+          <ul class="mt-3 space-y-2 text-sm">
+            <li><a href="mailto:hello@illuminatemontessori.com" class="hover:text-teal-500">hello@illuminatemontessori.com</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-black/5">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8 py-6 text-xs text-slate flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p>&copy; {new Date().getFullYear()} Illuminate Montessori. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -1,77 +1,140 @@
 ---
-export const prerender = false; // always fetch the latest Sanity content, no rebuild needed
+export const prerender = false;
 
 import Layout from "../layouts/Layout.astro";
-import Icon from "../components/Icon.astro";
+import CampusCard from "../components/CampusCard.astro";
 import { sanityClient } from "../lib/sanity";
-import { TUITION_PAGE_QUERY, fallbackTuitionPage, type TuitionPageData } from "../lib/tuitionQuery";
+import { HOME_PAGE_QUERY } from "../lib/queries";
+import { getAllCampuses } from "../lib/campuses";
 
-const data: TuitionPageData = sanityClient
-  ? ((await sanityClient.fetch(TUITION_PAGE_QUERY)) ?? fallbackTuitionPage)
-  : fallbackTuitionPage;
+const fallback = {
+  topBanner: "8 Campuses in Virginia, 8 Campuses in Texas & 2 Campuses in Massachusetts",
+  heroLine1: "A Place Families Trust,",
+  heroLine2: "and Children Love.",
+  heroDescription:
+    "Delivering the best Montessori education in America through inspiring environments, exceptional educators, and a proven approach that helps children grow into confident, capable, and curious learners.",
+  primaryCtaText: "Schedule a Tour",
+  primaryCtaHref: "/contact/",
+  secondaryCtaText: "Watch Our Story",
+  benefits: ["Exceptional Educators", "Purposefully Prepared Environments", "Authentic Montessori Education"],
+  differenceEyebrow: "The Illuminate Montessori Difference",
+  differenceHeading: "A childhood worth nourishing.",
+  differenceItems: [
+    { title: "Authentic Montessori", description: "A thoughtfully designed educational approach that follows each child's natural development through hands-on learning, mixed-age classrooms, and uninterrupted work cycles." },
+    { title: "Independence, on Purpose", description: "From the first time a toddler pours their own water to a third-grader running their own research project, every detail is designed for capable, confident children." },
+    { title: "Joyful, Calm Days", description: "Mixed-age classrooms, three-hour uninterrupted work cycles, and the freedom to choose meaningful work make school a place children love." },
+  ],
+  campusesEyebrow: "The Illuminate Montessori Difference",
+  campusesHeading: "10 schools, one consistent standard.",
+  campusesIntro: "Across every Illuminate Montessori campus, you'll experience the same trusted Montessori philosophy, exceptional academic standards, and personalized care.",
+  eventsHeading: "Events Across Our Campuses",
+  eventsText: "There's always something happening in our school community. Explore upcoming events across our campuses, meet educators and families, and discover opportunities to connect, learn, and celebrate together.",
+  closingHeading: "Come see for yourself.",
+  closingText: "Weekday tours are available at every Illuminate campus.",
+};
+
+const data = sanityClient ? ((await sanityClient.fetch(HOME_PAGE_QUERY)) ?? fallback) : fallback;
+const allCampuses = await getAllCampuses();
+const findCampuses = allCampuses.filter((c) => c.showOnFindCampus !== false && c.region !== "Texas");
+const vaCampuses = findCampuses.filter((c) => c.region === "Virginia");
+const maCampuses = findCampuses.filter((c) => c.region === "Massachusetts");
 ---
 
-<Layout title="Tuition">
+<Layout title="Home">
   <!-- Hero -->
   <section class="bg-cream">
-    <div class="mx-auto max-w-5xl px-6 lg:px-8 pt-20 pb-24 text-center">
-      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500">{data.eyebrow}</p>
-      <h1 class="mt-4 font-serif text-4xl sm:text-5xl lg:text-6xl text-ink leading-tight">
-        {data.headingLine1}
+    <div class="mx-auto max-w-5xl px-6 lg:px-8 pt-16 pb-20 text-center">
+      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">{data.topBanner}</p>
+      <h1 class="mt-5 font-serif text-4xl sm:text-5xl lg:text-6xl text-ink leading-tight">
+        {data.heroLine1}
         <br />
-        <span class="text-teal-400">{data.headingLine2}</span>
+        <span class="text-teal-400">{data.heroLine2}</span>
       </h1>
+      <p class="mx-auto mt-6 max-w-2xl text-slate leading-relaxed">{data.heroDescription}</p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <a href={data.primaryCtaHref} class="inline-flex items-center rounded-full bg-teal-400 px-7 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+          {data.primaryCtaText}
+        </a>
+        <button class="inline-flex items-center gap-2 rounded-full border border-black/10 px-7 py-3 text-sm font-medium text-ink hover:border-teal-300 transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+          {data.secondaryCtaText}
+        </button>
+      </div>
     </div>
   </section>
 
-  <!-- Steps -->
-  <section class="mx-auto max-w-7xl px-6 lg:px-8 -mt-16 pb-20">
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      {data.steps.map((step, i) => (
-        <div class="rounded-2xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-black/5">
-          <div class="flex items-start justify-between">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-teal-light text-teal-500">
-              <Icon name={step.icon} />
-            </div>
-            <span class="font-serif text-2xl text-black/10">{String(i + 1).padStart(2, "0")}</span>
-          </div>
-          <h3 class="mt-5 font-serif text-lg text-ink">{step.title}</h3>
-          <p class="mt-2 text-sm leading-relaxed text-slate">{step.description}</p>
-        </div>
+  <!-- Benefits -->
+  <section class="mx-auto max-w-5xl px-6 lg:px-8 py-14">
+    <p class="text-center text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">The Benefits of an Illuminate Montessori Education</p>
+    <div class="mt-8 grid gap-6 sm:grid-cols-3 text-center">
+      {(data.benefits ?? fallback.benefits).map((b: string) => (
+        <p class="font-serif text-lg text-ink">{b}</p>
       ))}
     </div>
   </section>
 
-  <!-- What sets your tuition -->
-  <section class="mx-auto max-w-7xl px-6 lg:px-8 py-20">
-    <div class="text-center max-w-2xl mx-auto">
-      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500">{data.factorsEyebrow}</p>
-      <h2 class="mt-4 font-serif text-3xl sm:text-4xl text-ink">{data.factorsHeading}</h2>
-    </div>
-
-    <div class="mt-14 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-      {data.factors.map((factor) => (
-        <div class="flex gap-4">
-          <span class="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-teal-400"></span>
+  <!-- Difference -->
+  <section class="bg-teal-light">
+    <div class="mx-auto max-w-6xl px-6 lg:px-8 py-20">
+      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">{data.differenceEyebrow}</p>
+      <h2 class="mt-4 font-serif text-3xl sm:text-4xl text-ink max-w-lg">{data.differenceHeading}</h2>
+      <div class="mt-12 grid gap-8 sm:grid-cols-3">
+        {data.differenceItems.map((item: any) => (
           <div>
-            <h3 class="font-medium text-ink">{factor.title}</h3>
-            <p class="mt-1.5 text-sm leading-relaxed text-slate">{factor.description}</p>
+            <h3 class="font-serif text-xl text-ink">{item.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-slate">{item.description}</p>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   </section>
 
-  <!-- CTA -->
+  <!-- Campuses -->
+  <section class="mx-auto max-w-6xl px-6 lg:px-8 py-20">
+    <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">{data.campusesEyebrow}</p>
+    <h2 class="mt-4 font-serif text-3xl sm:text-4xl text-ink max-w-xl">{data.campusesHeading}</h2>
+    <p class="mt-4 max-w-2xl text-slate leading-relaxed">{data.campusesIntro}</p>
+
+    {vaCampuses.length > 0 && (
+      <div class="mt-10">
+        <p class="text-sm font-medium text-ink mb-3">{vaCampuses.length} Campuses in Virginia</p>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {vaCampuses.map((c) => <CampusCard name={c.name} slug={c.slug} region={c.region} />)}
+        </div>
+      </div>
+    )}
+    {maCampuses.length > 0 && (
+      <div class="mt-8">
+        <p class="text-sm font-medium text-ink mb-3">{maCampuses.length} Campuses in Massachusetts</p>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {maCampuses.map((c) => <CampusCard name={c.name} slug={c.slug} region={c.region} />)}
+        </div>
+      </div>
+    )}
+
+    <div class="mt-10 text-center">
+      <a href="/our-schools/" class="inline-flex items-center rounded-full border border-black/10 px-7 py-3 text-sm font-medium text-ink hover:border-teal-300 transition-colors">
+        See All {findCampuses.length} Campuses
+      </a>
+    </div>
+  </section>
+
+  <!-- Events -->
+  <section class="bg-cream">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 py-16 text-center">
+      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">Upcoming Events</p>
+      <h2 class="mt-4 font-serif text-2xl sm:text-3xl text-ink">{data.eventsHeading}</h2>
+      <p class="mt-4 text-slate leading-relaxed">{data.eventsText}</p>
+    </div>
+  </section>
+
+  <!-- Closing CTA -->
   <section class="bg-teal-500">
     <div class="mx-auto max-w-3xl px-6 lg:px-8 py-20 text-center">
-      <h2 class="font-serif text-3xl sm:text-4xl text-white">{data.ctaHeading}</h2>
-      <p class="mt-4 text-teal-light/90 text-teal-100 leading-relaxed">{data.ctaDescription}</p>
-      <a
-        href={data.ctaButtonLink}
-        class="mt-8 inline-flex items-center rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-teal-600 hover:bg-cream transition-colors"
-      >
-        {data.ctaButtonText}
+      <h2 class="font-serif text-3xl sm:text-4xl text-white">{data.closingHeading}</h2>
+      <p class="mt-4 text-teal-100 leading-relaxed">{data.closingText}</p>
+      <a href="/contact/" class="mt-8 inline-flex items-center rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-teal-600 hover:bg-cream transition-colors">
+        Schedule a Tour
       </a>
     </div>
   </section>

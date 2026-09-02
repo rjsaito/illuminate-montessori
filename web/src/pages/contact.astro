@@ -1,0 +1,132 @@
+---
+export const prerender = false;
+
+import Layout from "../layouts/Layout.astro";
+import CampusCard from "../components/CampusCard.astro";
+import { sanityClient } from "../lib/sanity";
+import { CONTACT_PAGE_QUERY } from "../lib/queries";
+import { getAllCampuses } from "../lib/campuses";
+
+const fallback = {
+  eyebrow: "Visit",
+  heading: "Come see for yourself.",
+  subheading: "Weekday tours are available at every Illuminate Montessori campus.",
+  formEndpoint: "",
+  whatToExpect: ["We confirm your tour within one business day", "Tours run weekday (~45 minutes)", "You'll meet the Head of School and see classrooms in session", "No pressure — observe, ask questions, take your time"],
+  phoneNote: "Browse the campus locations below and select the school campus you are interested in.",
+};
+
+const data = sanityClient ? ((await sanityClient.fetch(CONTACT_PAGE_QUERY)) ?? fallback) : fallback;
+const allCampuses = await getAllCampuses();
+const findCampuses = allCampuses.filter((c) => c.showOnFindCampus !== false && c.region !== "Texas");
+const vaCampuses = findCampuses.filter((c) => c.region === "Virginia");
+const maCampuses = findCampuses.filter((c) => c.region === "Massachusetts");
+const hasForm = Boolean(data.formEndpoint);
+---
+
+<Layout title="Contact" description="Schedule a weekday tour at any Illuminate Montessori campus.">
+  <section class="bg-cream">
+    <div class="mx-auto max-w-6xl px-6 lg:px-8 pt-16 pb-16 grid gap-12 lg:grid-cols-2">
+      <div>
+        <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">{data.eyebrow}</p>
+        <h1 class="mt-4 font-serif text-4xl sm:text-5xl text-ink leading-tight">{data.heading}</h1>
+        <p class="mt-4 text-slate leading-relaxed">{data.subheading}</p>
+
+        <ul class="mt-8 space-y-3">
+          {data.whatToExpect.map((t: string) => (
+            <li class="flex items-start gap-3 text-sm text-slate">
+              <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-teal-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5" /></svg>
+              {t}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="rounded-2xl bg-white p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-black/5">
+        {hasForm ? (
+          <form action={data.formEndpoint} method="POST" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-medium text-ink" for="firstName">First name *</label>
+                <input id="firstName" name="firstName" required class="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-teal-400 focus:outline-none" />
+              </div>
+              <div>
+                <label class="text-xs font-medium text-ink" for="lastName">Last name *</label>
+                <input id="lastName" name="lastName" required class="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-teal-400 focus:outline-none" />
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-ink" for="email">Email *</label>
+              <input id="email" name="email" type="email" required class="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-teal-400 focus:outline-none" />
+            </div>
+            <div>
+              <label class="text-xs font-medium text-ink" for="phone">Phone</label>
+              <input id="phone" name="phone" type="tel" class="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-teal-400 focus:outline-none" />
+            </div>
+            <div>
+              <label class="text-xs font-medium text-ink" for="campus">Which campus? *</label>
+              <select id="campus" name="campus" required class="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-teal-400 focus:outline-none">
+                <option value="">Choose a campus...</option>
+                {vaCampuses.map((c) => <option value={`${c.name}, VA`}>{c.name}, VA</option>)}
+                {maCampuses.map((c) => <option value={`${c.name}, MA`}>{c.name}, MA</option>)}
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-ink" for="childAge">Child's age</label>
+              <select id="childAge" name="childAge" class="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-teal-400 focus:outline-none">
+                <option value="">Select...</option>
+                <option>Nido (6 Weeks – 18 Months)</option>
+                <option>Toddler (18 Months – 3 Years)</option>
+                <option>Children's House (3 – 6 Years)</option>
+                <option>Lower Elementary (6 – 9 Years)</option>
+                <option>Upper Elementary (9 – 12 Years)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-ink" for="notes">Anything we should know?</label>
+              <textarea id="notes" name="notes" rows="3" class="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-teal-400 focus:outline-none"></textarea>
+            </div>
+            <button type="submit" class="w-full rounded-full bg-teal-400 px-6 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+              Schedule My Tour
+            </button>
+            <p class="text-xs text-slate text-center">We respond within one business day. Your information is only used to plan your visit.</p>
+          </form>
+        ) : (
+          <div class="text-center py-10">
+            <p class="font-serif text-lg text-ink">Ready to schedule a tour?</p>
+            <p class="mt-2 text-sm text-slate">Email us and we'll respond within one business day.</p>
+            <a href="mailto:hello@illuminatemontessori.com" class="mt-6 inline-flex items-center rounded-full bg-teal-400 px-6 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+              Email hello@illuminatemontessori.com
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 lg:px-8 py-14 text-center">
+    <p class="font-medium text-ink">Prefer to call?</p>
+    <p class="mt-2 text-sm text-slate leading-relaxed">{data.phoneNote}</p>
+  </section>
+
+  <section class="bg-cream">
+    <div class="mx-auto max-w-6xl px-6 lg:px-8 py-16">
+      {vaCampuses.length > 0 && (
+        <div>
+          <p class="text-sm font-medium text-ink mb-4">{vaCampuses.length} campuses in Virginia</p>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {vaCampuses.map((c) => <CampusCard name={c.name} slug={c.slug} region={c.region} />)}
+          </div>
+        </div>
+      )}
+      {maCampuses.length > 0 && (
+        <div class="mt-10">
+          <p class="text-sm font-medium text-ink mb-4">{maCampuses.length} campuses in Massachusetts</p>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {maCampuses.map((c) => <CampusCard name={c.name} slug={c.slug} region={c.region} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>

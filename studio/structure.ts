@@ -1,13 +1,27 @@
 import type { StructureResolver } from "sanity/structure";
 
-// Singleton editing experience: clicking "Tuition Page" opens the one
-// document directly instead of a list you'd have to create an item in.
+const singleton = (S: any, id: string, title: string, type: string) =>
+  S.listItem()
+    .title(title)
+    .id(id)
+    .child(S.document().schemaType(type).documentId(id));
+
+// Singleton pages open straight to their one document; Campuses is a normal
+// list since editors add/remove campuses over time.
 export const structure: StructureResolver = (S) =>
   S.list()
     .title("Content")
     .items([
+      singleton(S, "homePage", "Home Page", "homePage"),
+      singleton(S, "aboutPage", "About Page", "aboutPage"),
+      singleton(S, "admissionsPage", "Admissions Page", "admissionsPage"),
+      singleton(S, "montessoriPage", "What is Montessori Page", "montessoriPage"),
+      singleton(S, "tuitionPage", "Tuition Page", "tuitionPage"),
+      singleton(S, "contactPage", "Contact Page", "contactPage"),
+      singleton(S, "ourSchoolsPage", "Our Schools Page", "ourSchoolsPage"),
+      S.divider(),
       S.listItem()
-        .title("Tuition Page")
-        .id("tuitionPage")
-        .child(S.document().schemaType("tuitionPage").documentId("tuitionPage")),
+        .title("Campuses")
+        .id("campus")
+        .child(S.documentTypeList("campus").title("Campuses")),
     ]);

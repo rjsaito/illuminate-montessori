@@ -11,5 +11,6 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
 
+  trailingSlash: 'always',
   adapter: vercel()
 });

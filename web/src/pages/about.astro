@@ -1,0 +1,91 @@
+---
+export const prerender = false;
+
+import Layout from "../layouts/Layout.astro";
+import FindCampusCta from "../components/FindCampusCta.astro";
+import { sanityClient, urlFor } from "../lib/sanity";
+import { ABOUT_PAGE_QUERY } from "../lib/queries";
+
+const fallback = {
+  eyebrow: "About Illuminate",
+  heading: "A Place Families Trust, and Children Love.",
+  subheading: "Why families choose Illuminate Montessori.",
+  missionEyebrow: "Delivering the Best Montessori Education in America",
+  missionText:
+    "Illuminate Montessori's vision is to deliver the best Montessori education in America. We nurture the whole child through authentic Montessori principles while preparing children for the world of today and tomorrow.",
+  heroImage: null,
+  visionHeading: "Our Vision.",
+  visionItems: ["Independence & Self-Motivation", "Confidence Through Achievement", "Respect for Every Child", "Lifelong Love of Learning", "Strong Character & Responsibility", "Meaningful Family Partnerships"],
+  visionClosing: "When you step into one of our schools, you'll feel the warmth, the sense of purpose, and the delight that comes from a community built around children and their growth.",
+  valuesHeading: "Our core values.",
+  valuesIntro: "At Illuminate Montessori, we believe children and families flourish when the right conditions are prepared.",
+  values: ["Trust", "Excellence", "Family Partnership", "Authentic Montessori Education", "Whole-child development", "Leadership and innovation"],
+  meansHeading: "What this means for your family.",
+  meansItems: ["Trusted partnership between school and family", "Children being known, valued, and supported", "Exceptional educators", "Authentic Montessori environments", "Confidence, independence, and lifelong learning", "Warm and welcoming communities"],
+  closingText: "At the center of it all is your child. Always.",
+};
+
+const data = sanityClient ? ((await sanityClient.fetch(ABOUT_PAGE_QUERY)) ?? fallback) : fallback;
+const heroImageUrl = data.heroImage ? urlFor(data.heroImage) : "/images/core/about-classroom.webp";
+---
+
+<Layout title="About" description="Why families choose Illuminate Montessori.">
+  <section class="bg-cream">
+    <div class="mx-auto max-w-4xl px-6 lg:px-8 pt-16 pb-16 text-center">
+      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">{data.eyebrow}</p>
+      <p class="mt-4 text-slate">{data.subheading}</p>
+      <h1 class="mt-2 font-serif text-4xl sm:text-5xl text-ink leading-tight">{data.heading}</h1>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 lg:px-8 py-16 grid gap-10 lg:grid-cols-2 items-center">
+    <div>
+      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">{data.missionEyebrow}</p>
+      <p class="mt-4 text-slate leading-relaxed">{data.missionText}</p>
+    </div>
+    <img src={heroImageUrl} alt="Illuminate Montessori classroom" class="rounded-2xl w-full h-80 object-cover" />
+  </section>
+
+  <section class="bg-teal-light">
+    <div class="mx-auto max-w-4xl px-6 lg:px-8 py-16 text-center">
+      <h2 class="font-serif text-3xl text-ink">{data.visionHeading}</h2>
+      <div class="mt-8 grid gap-4 sm:grid-cols-2">
+        {data.visionItems.map((v: string) => (
+          <p class="rounded-xl bg-white px-5 py-4 text-sm font-medium text-ink">{v}</p>
+        ))}
+      </div>
+      <p class="mt-8 max-w-2xl mx-auto text-slate leading-relaxed">{data.visionClosing}</p>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-5xl px-6 lg:px-8 py-20 text-center">
+    <h2 class="font-serif text-3xl text-ink">{data.valuesHeading}</h2>
+    <p class="mt-4 max-w-2xl mx-auto text-slate leading-relaxed">{data.valuesIntro}</p>
+    <div class="mt-10 grid gap-4 sm:grid-cols-3">
+      {data.values.map((v: string) => (
+        <div class="rounded-xl border border-black/5 px-5 py-6">
+          <p class="font-serif text-lg text-ink">{v}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="bg-cream">
+    <div class="mx-auto max-w-4xl px-6 lg:px-8 py-16">
+      <h2 class="text-center font-serif text-3xl text-ink">{data.meansHeading}</h2>
+      <ul class="mt-8 grid gap-3 sm:grid-cols-2">
+        {data.meansItems.map((m: string) => (
+          <li class="flex items-start gap-3 text-sm text-slate">
+            <span class="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-teal-400"></span>
+            {m}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 lg:px-8 py-16 text-center">
+    <p class="font-serif text-2xl text-ink mb-10">{data.closingText}</p>
+    <FindCampusCta />
+  </section>
+</Layout>
