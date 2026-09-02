@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "Inter", sans-serif;
+
+  --color-cream: #fbf7f0;
+  --color-teal-light: #ebf7f6;
+  --color-teal-100: #c5dad8;
+  --color-teal-300: #79cbc5;
+  --color-teal-400: #5fafa8;
+  --color-teal-500: #4a9b94;
+  --color-teal-600: #3a8983;
+  --color-ink: #1a1a1a;
+  --color-slate: #67768e;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-slate);
+  background-color: #ffffff;
+}

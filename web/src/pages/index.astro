@@ -1,0 +1,78 @@
+---
+export const prerender = false; // always fetch the latest Sanity content, no rebuild needed
+
+import Layout from "../layouts/Layout.astro";
+import Icon from "../components/Icon.astro";
+import { sanityClient } from "../lib/sanity";
+import { TUITION_PAGE_QUERY, fallbackTuitionPage, type TuitionPageData } from "../lib/tuitionQuery";
+
+const data: TuitionPageData = sanityClient
+  ? ((await sanityClient.fetch(TUITION_PAGE_QUERY)) ?? fallbackTuitionPage)
+  : fallbackTuitionPage;
+---
+
+<Layout title="Tuition">
+  <!-- Hero -->
+  <section class="bg-cream">
+    <div class="mx-auto max-w-5xl px-6 lg:px-8 pt-20 pb-24 text-center">
+      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500">{data.eyebrow}</p>
+      <h1 class="mt-4 font-serif text-4xl sm:text-5xl lg:text-6xl text-ink leading-tight">
+        {data.headingLine1}
+        <br />
+        <span class="text-teal-400">{data.headingLine2}</span>
+      </h1>
+    </div>
+  </section>
+
+  <!-- Steps -->
+  <section class="mx-auto max-w-7xl px-6 lg:px-8 -mt-16 pb-20">
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {data.steps.map((step, i) => (
+        <div class="rounded-2xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-black/5">
+          <div class="flex items-start justify-between">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-teal-light text-teal-500">
+              <Icon name={step.icon} />
+            </div>
+            <span class="font-serif text-2xl text-black/10">{String(i + 1).padStart(2, "0")}</span>
+          </div>
+          <h3 class="mt-5 font-serif text-lg text-ink">{step.title}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate">{step.description}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- What sets your tuition -->
+  <section class="mx-auto max-w-7xl px-6 lg:px-8 py-20">
+    <div class="text-center max-w-2xl mx-auto">
+      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500">{data.factorsEyebrow}</p>
+      <h2 class="mt-4 font-serif text-3xl sm:text-4xl text-ink">{data.factorsHeading}</h2>
+    </div>
+
+    <div class="mt-14 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      {data.factors.map((factor) => (
+        <div class="flex gap-4">
+          <span class="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-teal-400"></span>
+          <div>
+            <h3 class="font-medium text-ink">{factor.title}</h3>
+            <p class="mt-1.5 text-sm leading-relaxed text-slate">{factor.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-teal-500">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 py-20 text-center">
+      <h2 class="font-serif text-3xl sm:text-4xl text-white">{data.ctaHeading}</h2>
+      <p class="mt-4 text-teal-light/90 text-teal-100 leading-relaxed">{data.ctaDescription}</p>
+      <a
+        href={data.ctaButtonLink}
+        class="mt-8 inline-flex items-center rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-teal-600 hover:bg-cream transition-colors"
+      >
+        {data.ctaButtonText}
+      </a>
+    </div>
+  </section>
+</Layout>
