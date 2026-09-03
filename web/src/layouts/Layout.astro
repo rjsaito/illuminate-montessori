@@ -4,10 +4,25 @@ import { getAllCampuses } from "../lib/campuses";
 
 interface Props {
   title: string;
+  /** Full <title> override. Otherwise "{title} | Illuminate Montessori". */
+  metaTitle?: string;
   description?: string;
+  ogImage?: string;
+  /** Extra JSON-LD to emit alongside the sitewide Organization schema. */
+  schema?: Record<string, any> | Record<string, any>[];
 }
 
-const { title, description = "Montessori education for the whole child." } = Astro.props;
+const {
+  title,
+  metaTitle,
+  description = "Authentic Montessori education for children from 6 weeks through 12 years, across 18 campuses in Virginia, Massachusetts, and Texas.",
+  ogImage = "/images/core/home-hero.jpeg",
+  schema,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = new URL(ogImage, Astro.site).href;
+const fullTitle = metaTitle ?? `${title} | Illuminate Montessori`;
 
 const campuses = await getAllCampuses();
 const findCampuses = campuses.filter((c) => c.showOnFindCampus !== false && c.region !== "Texas");
@@ -19,16 +34,42 @@ const navLinks = [
   { label: "Tuition", href: "/tuition/" },
   { label: "About", href: "/about/" },
 ];
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  name: "Illuminate Montessori",
+  url: Astro.site?.href,
+  logo: new URL("/images/core/logo-illuminate.png", Astro.site).href,
+  email: "hello@illuminatemontessori.com",
+  description,
+  areaServed: ["Virginia", "Massachusetts", "Texas"],
+};
+
+const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? schema : [schema]) : [])];
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="/images/core/logo-illuminate.png" />
+    <link rel="apple-touch-icon" href="/images/core/logo-illuminate.png" />
+    <link rel="canonical" href={canonical} />
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
-    <title>{title} · Illuminate Montessori</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Illuminate Montessori" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -36,24 +77,44 @@ const navLinks = [
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+
+    {schemaBlocks.map((block) => (
+      <script type="application/ld+json" set:html={JSON.stringify(block)} />
+    ))}
   </head>
   <body class="bg-white text-slate">
-    <header class="border-b border-black/5 relative z-50">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-ink">
+      Skip to content
+    </a>
+
+    <header class="border-b border-black/5 relative z-50 bg-white">
       <div class="mx-auto max-w-7xl px-6 lg:px-8 h-20 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2 font-serif text-xl text-ink">
-          <svg class="w-7 h-7 text-teal-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 2v6M9 22h6M8 22c-1-3 0-5 1-6.5C10.3 13.8 11 12.5 11 10.5V8h2v2.5c0 2 .7 3.3 2 4.5 1 1.5 2 3.5 1 7" />
-          </svg>
-          Illuminate
+        <a href="/" class="flex items-center" aria-label="Illuminate Montessori — home">
+          <img
+            src="/images/core/logo-illuminate.png"
+            alt="Illuminate Montessori"
+            width="180"
+            height="40"
+            class="h-10 w-auto"
+          />
         </a>
 
-        <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-ink/80">
-          <div class="group relative">
-            <button class="flex items-center gap-1 hover:text-teal-500 transition-colors">
+        <nav aria-label="Main" class="hidden lg:flex items-center gap-8 text-sm font-medium text-ink/80">
+          <div class="relative" data-dropdown>
+            <button
+              type="button"
+              class="flex items-center gap-1 hover:text-teal-500 transition-colors"
+              aria-expanded="false"
+              aria-haspopup="true"
+              data-dropdown-trigger
+            >
               Find Your Campus
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </button>
-            <div class="invisible absolute left-0 top-full w-56 rounded-xl border border-black/5 bg-white py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100">
+            <div
+              class="hidden absolute left-0 top-full w-56 rounded-xl border border-black/5 bg-white py-2 shadow-lg"
+              data-dropdown-menu
+            >
               {findCampuses.map((c) => (
                 <a href={`/${c.slug}/`} class="block px-4 py-2 text-sm hover:bg-teal-light hover:text-teal-600">{c.name}</a>
               ))}
@@ -67,12 +128,21 @@ const navLinks = [
           ))}
 
           {texasCampuses.length > 0 && (
-            <div class="group relative">
-              <button class="flex items-center gap-1 hover:text-teal-500 transition-colors">
+            <div class="relative" data-dropdown>
+              <button
+                type="button"
+                class="flex items-center gap-1 hover:text-teal-500 transition-colors"
+                aria-expanded="false"
+                aria-haspopup="true"
+                data-dropdown-trigger
+              >
                 Texas Schools
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
               </button>
-              <div class="invisible absolute right-0 top-full w-56 rounded-xl border border-black/5 bg-white py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100">
+              <div
+                class="hidden absolute right-0 top-full w-56 rounded-xl border border-black/5 bg-white py-2 shadow-lg"
+                data-dropdown-menu
+              >
                 {texasCampuses.map((c) => (
                   <a href={`/${c.slug}/`} class="block px-4 py-2 text-sm hover:bg-teal-light hover:text-teal-600">{c.name}</a>
                 ))}
@@ -81,16 +151,65 @@ const navLinks = [
           )}
         </nav>
 
-        <a
-          href="/contact/"
-          class="hidden sm:inline-flex items-center rounded-full bg-teal-400 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors"
-        >
-          Schedule a Tour
-        </a>
+        <div class="flex items-center gap-3">
+          <a
+            href="/contact/"
+            class="hidden sm:inline-flex items-center rounded-full bg-teal-400 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors"
+          >
+            Schedule a Tour
+          </a>
+
+          <button
+            type="button"
+            class="lg:hidden inline-flex items-center justify-center rounded-lg p-2 text-ink hover:bg-cream"
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+            aria-label="Open menu"
+            data-mobile-trigger
+          >
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div id="mobile-menu" class="hidden lg:hidden border-t border-black/5 bg-white" data-mobile-menu>
+        <nav aria-label="Mobile" class="mx-auto max-w-7xl px-6 py-4 space-y-1">
+          {navLinks.map((link) => (
+            <a href={link.href} class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">{link.label}</a>
+          ))}
+          <a href="/our-schools/" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">Find Your Campus</a>
+
+          <details class="rounded-lg">
+            <summary class="cursor-pointer list-none rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">Campuses</summary>
+            <div class="pl-3 pb-2">
+              {findCampuses.map((c) => (
+                <a href={`/${c.slug}/`} class="block rounded-lg px-3 py-2 text-sm text-slate hover:bg-cream">{c.name}</a>
+              ))}
+            </div>
+          </details>
+
+          {texasCampuses.length > 0 && (
+            <details class="rounded-lg">
+              <summary class="cursor-pointer list-none rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">Texas Schools</summary>
+              <div class="pl-3 pb-2">
+                {texasCampuses.map((c) => (
+                  <a href={`/${c.slug}/`} class="block rounded-lg px-3 py-2 text-sm text-slate hover:bg-cream">{c.name}</a>
+                ))}
+              </div>
+            </details>
+          )}
+
+          <a href="/contact/" class="mt-2 block rounded-full bg-teal-400 px-5 py-3 text-center text-sm font-medium text-white hover:bg-teal-500">
+            Schedule a Tour
+          </a>
+        </nav>
       </div>
     </header>
 
-    <main>
+    <main id="main">
       <slot />
     </main>
 
@@ -129,5 +248,48 @@ const navLinks = [
         </div>
       </div>
     </footer>
+
+    <script>
+      // Desktop dropdowns: click/keyboard to toggle, hover to open, Esc to close.
+      const dropdowns = document.querySelectorAll<HTMLElement>("[data-dropdown]");
+      dropdowns.forEach((wrapper) => {
+        const trigger = wrapper.querySelector<HTMLButtonElement>("[data-dropdown-trigger]");
+        const menu = wrapper.querySelector<HTMLElement>("[data-dropdown-menu]");
+        if (!trigger || !menu) return;
+
+        const open = () => {
+          menu.classList.remove("hidden");
+          trigger.setAttribute("aria-expanded", "true");
+        };
+        const close = () => {
+          menu.classList.add("hidden");
+          trigger.setAttribute("aria-expanded", "false");
+        };
+
+        trigger.addEventListener("click", () => {
+          menu.classList.contains("hidden") ? open() : close();
+        });
+        wrapper.addEventListener("mouseenter", open);
+        wrapper.addEventListener("mouseleave", close);
+        wrapper.addEventListener("focusout", (e) => {
+          if (!wrapper.contains(e.relatedTarget as Node)) close();
+        });
+        wrapper.addEventListener("keydown", (e) => {
+          if ((e as KeyboardEvent).key === "Escape") {
+            close();
+            trigger.focus();
+          }
+        });
+      });
+
+      // Mobile menu toggle
+      const mobileTrigger = document.querySelector<HTMLButtonElement>("[data-mobile-trigger]");
+      const mobileMenu = document.querySelector<HTMLElement>("[data-mobile-menu]");
+      mobileTrigger?.addEventListener("click", () => {
+        const isHidden = mobileMenu?.classList.toggle("hidden");
+        mobileTrigger.setAttribute("aria-expanded", String(!isHidden));
+        mobileTrigger.setAttribute("aria-label", isHidden ? "Open menu" : "Close menu");
+      });
+    </script>
   </body>
 </html>

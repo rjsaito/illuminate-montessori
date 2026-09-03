@@ -1,8 +1,19 @@
 ---
+import { getAllCampuses } from "../lib/campuses";
+
 interface Props {
   class?: string;
 }
 const { class: className = "" } = Astro.props;
+
+// Derived rather than hardcoded so the copy can't drift when campuses change.
+const campuses = await getAllCampuses();
+const listed = campuses.filter((c) => c.showOnFindCampus !== false && c.region !== "Texas");
+const byRegion = ["Virginia", "Massachusetts"]
+  .map((r) => ({ region: r, count: listed.filter((c) => c.region === r).length }))
+  .filter((r) => r.count > 0);
+
+const breakdown = byRegion.map((r) => `${r.count} in ${r.region}`).join(" & ");
 ---
 
 <div class={`text-center ${className}`}>
@@ -13,6 +24,6 @@ const { class: className = "" } = Astro.props;
     Find a School Near You
   </a>
   <p class="mt-3 text-xs tracking-[0.15em] text-slate uppercase">
-    10 Campuses · 8 in Virginia & 2 in Massachusetts
+    {listed.length} Campuses · {breakdown}
   </p>
 </div>

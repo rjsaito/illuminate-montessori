@@ -36,9 +36,28 @@ const fallback = {
 };
 
 const data = sanityClient ? ((await sanityClient.fetch(ADMISSIONS_PAGE_QUERY)) ?? fallback) : fallback;
+
+// Only questions that actually have answers belong in FAQ schema.
+const answeredFaqs = (data.faqs ?? []).filter((f: any) => f.answer?.trim());
+const faqSchema = answeredFaqs.length
+  ? {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: answeredFaqs.map((f: any) => ({
+        "@type": "Question",
+        name: f.question,
+        acceptedAnswer: { "@type": "Answer", text: f.answer },
+      })),
+    }
+  : undefined;
 ---
 
-<Layout title="Admissions" description="A clear, welcoming, and transparent admissions process at Illuminate Montessori.">
+<Layout
+  title="Admissions"
+  metaTitle="Admissions & Enrollment | Illuminate Montessori"
+  description="Tour, confirm placement, enroll. A clear, transparent admissions process for Nido, Toddler, and Children's House programs across our campuses."
+  schema={faqSchema}
+>
   <section class="bg-cream">
     <div class="mx-auto max-w-3xl px-6 lg:px-8 pt-16 pb-14 text-center">
       <h1 class="font-serif text-4xl sm:text-5xl text-ink leading-tight">{data.heading}</h1>

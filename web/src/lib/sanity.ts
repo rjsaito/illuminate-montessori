@@ -13,7 +13,20 @@ export const sanityClient = sanityConfigured
 
 const builder = sanityClient ? imageUrlBuilder(sanityClient) : null;
 
-export function urlFor(source: any) {
-  if (!builder) return "";
-  return builder.image(source).url();
+interface ImageOptions {
+  width?: number;
+  height?: number;
+  quality?: number;
+}
+
+/**
+ * Build a CDN URL with resize + WebP conversion. Serving originals costs ~1MB
+ * per campus hero; the same image at w=800/webp is ~60KB.
+ */
+export function urlFor(source: any, opts: ImageOptions = {}) {
+  if (!builder || !source) return "";
+  const { width = 900, height, quality = 75 } = opts;
+  let img = builder.image(source).width(width).quality(quality).auto("format").fit("max");
+  if (height) img = img.height(height).fit("crop");
+  return img.url();
 }

@@ -27,10 +27,28 @@ const fallback = {
 };
 
 const data = sanityClient ? ((await sanityClient.fetch(MONTESSORI_PAGE_QUERY)) ?? fallback) : fallback;
-const portraitUrl = data.portraitImage ? urlFor(data.portraitImage) : "/images/core/maria-montessori.webp";
+const portraitUrl = data.portraitImage ? urlFor(data.portraitImage, { width: 800 }) : "/images/core/maria-montessori.webp";
+
+const answeredFaqs = (data.faqs ?? []).filter((f: any) => f.answer?.trim());
+const faqSchema = answeredFaqs.length
+  ? {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: answeredFaqs.map((f: any) => ({
+        "@type": "Question",
+        name: f.question,
+        acceptedAnswer: { "@type": "Answer", text: f.answer },
+      })),
+    }
+  : undefined;
 ---
 
-<Layout title="What is Montessori?" description="Learn about Maria Montessori and the authentic Montessori method at Illuminate.">
+<Layout
+  title="What is Montessori?"
+  metaTitle="What is Montessori? The Method Explained | Illuminate Montessori"
+  description="How the Montessori method works: prepared environments, hands-on materials, mixed-age classrooms, and one-on-one guidance that build independence and a love of learning."
+  schema={faqSchema}
+>
   <section class="bg-cream">
     <div class="mx-auto max-w-6xl px-6 lg:px-8 pt-16 pb-16 grid gap-10 lg:grid-cols-2 items-center">
       <div>
@@ -42,7 +60,7 @@ const portraitUrl = data.portraitImage ? urlFor(data.portraitImage) : "/images/c
         </h1>
       </div>
       <div>
-        <img src={portraitUrl} alt="Maria Montessori" class="rounded-2xl w-full h-80 object-cover" />
+        <img src={portraitUrl} alt="Portrait of Maria Montessori" width="800" height="320" class="rounded-2xl w-full h-80 object-cover" />
       </div>
     </div>
     <div class="mx-auto max-w-3xl px-6 lg:px-8 pb-16">

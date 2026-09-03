@@ -1,0 +1,28 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="Page Not Found"
+  description="The page you're looking for doesn't exist. Find an Illuminate Montessori campus near you."
+>
+  <section class="bg-cream">
+    <div class="mx-auto max-w-2xl px-6 lg:px-8 py-28 text-center">
+      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">404</p>
+      <h1 class="mt-4 font-serif text-4xl sm:text-5xl text-ink leading-tight">
+        We couldn't find that page.
+      </h1>
+      <p class="mt-4 text-slate leading-relaxed">
+        The page may have moved. Let's get you back to finding the right campus for your family.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <a href="/our-schools/" class="inline-flex items-center rounded-full bg-teal-400 px-7 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+          Find Your Campus
+        </a>
+        <a href="/" class="inline-flex items-center rounded-full border border-black/10 px-7 py-3 text-sm font-medium text-ink hover:border-teal-300 transition-colors">
+          Back to Home
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>
