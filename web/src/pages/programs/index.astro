@@ -1,0 +1,67 @@
+---
+export const prerender = false;
+
+import Layout from "../../layouts/Layout.astro";
+import { sanityClient } from "../../lib/sanity";
+import { ALL_PROGRAMS_QUERY } from "../../lib/queries";
+import { getAllCampuses } from "../../lib/campuses";
+
+const programs = sanityClient ? ((await sanityClient.fetch(ALL_PROGRAMS_QUERY)) ?? []) : [];
+const campuses = await getAllCampuses();
+
+const withCounts = programs
+  .map((p: any) => ({
+    ...p,
+    campuses: campuses.filter((c) => (c.programs ?? []).some((cp: any) => cp.slug === p.slug)),
+  }))
+  .filter((p: any) => p.campuses.length > 0);
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Montessori programs at Illuminate Montessori",
+  itemListElement: withCounts.map((p: any, i: number) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: p.name,
+    url: new URL(`/programs/${p.slug}/`, Astro.site).href,
+  })),
+};
+---
+
+<Layout
+  title="Programs"
+  metaTitle="Montessori Programs — Infant, Toddler, Preschool & Elementary | Illuminate Montessori"
+  description="Explore Illuminate Montessori programs from Nido (6 weeks) through Elementary (12 years), including Spanish Immersion and Kindergarten — and see which campuses offer each."
+  schema={schema}
+>
+  <section class="bg-cream">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 pt-16 pb-14 text-center">
+      <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">Programs</p>
+      <h1 class="mt-4 font-serif text-4xl sm:text-5xl text-ink leading-tight">
+        A program for every stage.
+      </h1>
+      <p class="mt-4 text-slate leading-relaxed">
+        From infants finding their first independence to elementary students running their own research,
+        each program is a prepared environment matched to how children learn at that age.
+      </p>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 lg:px-8 py-16">
+    <div class="grid gap-6 sm:grid-cols-2">
+      {withCounts.map((p: any) => (
+        <a href={`/programs/${p.slug}/`} class="group block rounded-2xl border border-black/5 p-6 hover:border-teal-300 hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] transition-all">
+          <div class="flex items-baseline justify-between gap-3">
+            <h2 class="font-serif text-xl text-ink">{p.name}</h2>
+            {p.defaultAges && <span class="text-xs font-medium text-teal-500 whitespace-nowrap">{p.defaultAges}</span>}
+          </div>
+          {p.description && <p class="mt-3 text-sm leading-relaxed text-slate">{p.description}</p>}
+          <p class="mt-4 text-xs font-medium text-teal-500 group-hover:text-teal-600">
+            Offered at {p.campuses.length} campus{p.campuses.length === 1 ? "" : "es"} →
+          </p>
+        </a>
+      ))}
+    </div>
+  </section>
+</Layout>

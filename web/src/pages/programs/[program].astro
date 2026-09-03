@@ -1,0 +1,102 @@
+---
+export const prerender = false;
+
+import Layout from "../../layouts/Layout.astro";
+import CampusCard from "../../components/CampusCard.astro";
+import { sanityClient } from "../../lib/sanity";
+import { ALL_PROGRAMS_QUERY } from "../../lib/queries";
+import { getAllCampuses } from "../../lib/campuses";
+
+const { program: slug } = Astro.params;
+
+const programs = sanityClient ? ((await sanityClient.fetch(ALL_PROGRAMS_QUERY)) ?? []) : [];
+const program = programs.find((p: any) => p.slug === slug);
+
+if (!program) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+const campuses = (await getAllCampuses()).filter((c) =>
+  (c.programs ?? []).some((cp: any) => cp.slug === slug)
+);
+
+if (campuses.length === 0) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+const byRegion = ["Virginia", "Massachusetts", "Texas"]
+  .map((r) => ({ region: r, list: campuses.filter((c) => c.region === r) }))
+  .filter((g) => g.list.length > 0);
+
+const cities = [...new Set(campuses.map((c) => c.city).filter(Boolean))];
+const where = byRegion.map((g) => `${g.list.length} in ${g.region}`).join(", ");
+
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Programs", item: new URL("/programs/", Astro.site).href },
+      { "@type": "ListItem", position: 2, name: program.name, item: new URL(`/programs/${slug}/`, Astro.site).href },
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `Illuminate Montessori campuses offering ${program.name}`,
+    numberOfItems: campuses.length,
+    itemListElement: campuses.map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: `Illuminate Montessori at ${c.name}`,
+      url: new URL(`/${c.slug}/`, Astro.site).href,
+    })),
+  },
+];
+---
+
+<Layout
+  title={program.name}
+  metaTitle={`${program.name} Montessori Program${program.defaultAges ? ` (${program.defaultAges})` : ""} | Illuminate Montessori`}
+  description={`${program.description ?? `Illuminate Montessori's ${program.name} program.`} Offered at ${campuses.length} campus${campuses.length === 1 ? "" : "es"}${cities.length ? ` including ${cities.slice(0, 3).join(", ")}` : ""}.`}
+  schema={schema}
+>
+  <section class="bg-cream">
+    <div class="mx-auto max-w-3xl px-6 lg:px-8 pt-14 pb-14">
+      <nav aria-label="Breadcrumb" class="text-xs text-slate">
+        <a href="/programs/" class="hover:text-teal-500">Programs</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-ink">{program.name}</span>
+      </nav>
+      <h1 class="mt-4 font-serif text-4xl sm:text-5xl text-ink leading-tight">{program.name}</h1>
+      {program.defaultAges && (
+        <p class="mt-3 text-sm font-medium text-teal-500">{program.defaultAges}</p>
+      )}
+      {program.description && <p class="mt-4 text-slate leading-relaxed">{program.description}</p>}
+      <p class="mt-5 text-sm text-slate">
+        Available at <strong class="text-ink font-medium">{campuses.length} campus{campuses.length === 1 ? "" : "es"}</strong> — {where}.
+      </p>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 lg:px-8 py-16">
+    <h2 class="font-serif text-2xl text-ink">Campuses offering {program.name}</h2>
+    {byRegion.map((g) => (
+      <div class="mt-8">
+        <p class="text-sm font-medium text-ink mb-3">{g.list.length} in {g.region}</p>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {g.list.map((c) => <CampusCard name={c.name} slug={c.slug} region={c.region} />)}
+        </div>
+      </div>
+    ))}
+
+    <div class="mt-12 flex flex-wrap gap-4">
+      <a href="/our-schools/" class="inline-flex items-center rounded-full bg-teal-400 px-7 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+        Find the closest campus
+      </a>
+      <a href="/programs/" class="inline-flex items-center rounded-full border border-black/10 px-7 py-3 text-sm font-medium text-ink hover:border-teal-300 transition-colors">
+        All programs
+      </a>
+    </div>
+  </section>
+</Layout>

@@ -29,6 +29,7 @@ const findCampuses = campuses.filter((c) => c.showOnFindCampus !== false && c.re
 const texasCampuses = campuses.filter((c) => c.region === "Texas");
 
 const navLinks = [
+  { label: "Programs", href: "/programs/" },
   { label: "What is Montessori?", href: "/what-is-montessori/" },
   { label: "Admissions", href: "/admissions/" },
   { label: "Tuition", href: "/tuition/" },
@@ -222,6 +223,7 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
         <div>
           <p class="text-xs font-semibold tracking-wider text-ink uppercase">Explore</p>
           <ul class="mt-3 space-y-2 text-sm">
+            <li><a href="/programs/" class="hover:text-teal-500">Programs</a></li>
             <li><a href="/what-is-montessori/" class="hover:text-teal-500">What is Montessori?</a></li>
             <li><a href="/admissions/" class="hover:text-teal-500">Admissions</a></li>
             <li><a href="/tuition/" class="hover:text-teal-500">Tuition</a></li>
