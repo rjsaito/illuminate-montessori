@@ -4,7 +4,7 @@
   --font-serif: "Cormorant Garamond", serif;
   --font-sans: "Inter", sans-serif;
   /* Wordmark only — swap this one line to try a different logo face. */
-  --font-wordmark: "Fraunces", "Cormorant Garamond", serif;
+  --font-wordmark: "Playfair Display", "Cormorant Garamond", serif;
 
   --color-cream: #fbf7f0;
   --color-teal-light: #ebf7f6;

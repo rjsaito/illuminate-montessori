@@ -269,7 +269,9 @@ const mapsHref = campus.address
   />
 
   <!-- Tour -->
-  <section id="tour" class="bg-cream scroll-mt-20">
+  <!-- Negative scroll-margin: the header isn't sticky, so #tour can land just
+       above the heading rather than at the top of the section's padding. -->
+  <section id="tour" class="bg-cream scroll-mt-[-2rem]">
     <div class="mx-auto max-w-2xl px-6 lg:px-8 py-16 text-center">
       <h2 class="font-serif text-2xl text-ink">Schedule Your Visit to {campus.name}</h2>
       <p class="mt-3 text-slate">See our prepared environment for yourself. We host weekday tours by appointment.</p>

@@ -81,7 +81,7 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
 
@@ -257,26 +257,41 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
     </main>
 
     <footer class="border-t border-black/5 bg-cream">
+      {/* Columns mirror the top nav so the two never drift: Campuses, Programs,
+          the standalone pages, and Texas Schools kept separate as in the header. */}
       <div class="mx-auto max-w-7xl px-6 lg:px-8 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <a href="/" class="flex items-center gap-2 font-serif text-lg text-ink">Illuminate Montessori</a>
+          <a href="/" class="flex items-center gap-2.5">
+            <img src="/images/core/logo-mark.png" alt="" width="181" height="246" class="h-9 w-auto" />
+            <span class="font-wordmark text-xl leading-none text-ink">Illuminate</span>
+          </a>
           <p class="mt-3 text-sm text-slate">A place families trust, and children love.</p>
-        </div>
-        <div>
-          <p class="text-xs font-semibold tracking-wider text-ink uppercase">Explore</p>
-          <ul class="mt-3 space-y-2 text-sm">
-            <li><a href="/programs/" class="hover:text-teal-500">Programs</a></li>
-            <li><a href="/what-is-montessori/" class="hover:text-teal-500">What is Montessori?</a></li>
-            <li><a href="/admissions/" class="hover:text-teal-500">Admissions</a></li>
-            <li><a href="/tuition/" class="hover:text-teal-500">Tuition</a></li>
-            <li><a href="/about/" class="hover:text-teal-500">About</a></li>
-          </ul>
         </div>
         <div>
           <p class="text-xs font-semibold tracking-wider text-ink uppercase">Campuses</p>
           <ul class="mt-3 space-y-2 text-sm">
-            <li><a href="/our-schools/" class="hover:text-teal-500">Find Your Campus</a></li>
+            <li><a href="/our-schools/" class="hover:text-teal-500">All campuses</a></li>
+            <li><a href="/programs/" class="hover:text-teal-500">Programs</a></li>
             <li><a href="/contact/" class="hover:text-teal-500">Schedule a Tour</a></li>
+          </ul>
+          {texasCampuses.length > 0 && (
+            <>
+              <p class="mt-5 text-xs font-semibold tracking-wider text-ink uppercase">Texas Schools</p>
+              <ul class="mt-3 space-y-2 text-sm">
+                {texasCampuses.map((c) => (
+                  <li><a href={`/${c.slug}/`} class="hover:text-teal-500">{c.name}</a></li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+        <div>
+          <p class="text-xs font-semibold tracking-wider text-ink uppercase">Explore</p>
+          <ul class="mt-3 space-y-2 text-sm">
+            <li><a href="/what-is-montessori/" class="hover:text-teal-500">What is Montessori?</a></li>
+            <li><a href="/admissions/" class="hover:text-teal-500">Admissions</a></li>
+            <li><a href="/tuition/" class="hover:text-teal-500">Tuition</a></li>
+            <li><a href="/about/" class="hover:text-teal-500">About</a></li>
           </ul>
         </div>
         <div>
