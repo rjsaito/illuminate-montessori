@@ -107,22 +107,6 @@ export default defineType({
       ],
     }),
     defineField({
-      name: "schoolAgeCare",
-      title: "Offers School-Age Care (SAAC)",
-      type: "boolean",
-      initialValue: false,
-      group: "programs",
-    }),
-    defineField({
-      name: "schoolAgeCareNote",
-      title: "School-Age Care details",
-      type: "text",
-      rows: 3,
-      hidden: ({ parent }) => !parent?.schoolAgeCare,
-      group: "programs",
-    }),
-
-    defineField({
       name: "headOfSchool",
       title: "Head of School",
       type: "object",
