@@ -19,13 +19,6 @@ export default defineType({
   type: "document",
   fields: [
     defineField({
-      name: "eyebrow",
-      title: "Eyebrow label",
-      type: "string",
-      description: 'Small label above the headline, e.g. "TUITION"',
-      initialValue: "TUITION",
-    }),
-    defineField({
       name: "headingLine1",
       title: "Headline — line 1",
       type: "string",

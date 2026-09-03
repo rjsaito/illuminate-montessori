@@ -1,22 +1,5 @@
 import { defineField, defineType } from "sanity";
 
-const faqField = defineField({
-  name: "faqs",
-  title: "FAQs",
-  type: "array",
-  of: [
-    {
-      type: "object",
-      name: "faq",
-      fields: [
-        { name: "question", type: "string" },
-        { name: "answer", type: "text", rows: 3 },
-      ],
-      preview: { select: { title: "question" } },
-    },
-  ],
-});
-
 export default defineType({
   name: "admissionsPage",
   title: "Admissions Page",
@@ -67,7 +50,6 @@ export default defineType({
     }),
     defineField({ name: "referralHeading", title: "Referral program heading", type: "string" }),
     defineField({ name: "referralText", title: "Referral program text", type: "text", rows: 2 }),
-    faqField,
     defineField({ name: "closingText", title: "Closing text", type: "string" }),
   ],
   preview: { prepare: () => ({ title: "Admissions Page" }) },

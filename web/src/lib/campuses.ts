@@ -20,7 +20,7 @@ function normalize(c: any): CampusData {
     headOfSchool: c.headOfSchool
       ? {
           ...c.headOfSchool,
-          photoUrl: c.headOfSchool.photo ? urlFor(c.headOfSchool.photo, { width: 500 }) : null,
+          photoUrl: c.headOfSchool.photo ? urlFor(c.headOfSchool.photo, { width: 640 }) : null,
         }
       : null,
     programs: (c.programs ?? [])

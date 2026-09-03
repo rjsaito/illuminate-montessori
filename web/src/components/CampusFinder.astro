@@ -70,8 +70,26 @@ const payload = campuses.map((c) => ({
           <button type="button" id="zip-go"
             class="rounded-lg bg-teal-400 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">Go</button>
         </div>
-        <button type="button" id="geo-btn" class="mt-2 inline-block py-2 text-sm sm:text-xs font-medium text-teal-500 hover:text-teal-600">
-          Or use my current location
+        <div id="radius-wrap" class="mt-3 hidden">
+          <label class="text-xs font-medium text-slate" for="radius-select">Within</label>
+          <select id="radius-select"
+            class="mt-1 w-full rounded-lg border border-black/10 px-3 py-2.5 text-base sm:text-sm focus:border-teal-400 focus:outline-none">
+            <option value="0">Any distance</option>
+            <option value="5">5 miles</option>
+            <option value="10">10 miles</option>
+            <option value="25" selected>25 miles</option>
+            <option value="50">50 miles</option>
+            <option value="100">100 miles</option>
+          </select>
+        </div>
+
+        <button type="button" id="geo-btn"
+          class="mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-black/10 px-4 py-2.5 text-sm font-medium text-ink hover:border-teal-300 hover:text-teal-600 transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z" />
+            <circle cx="12" cy="10" r="2.5" />
+          </svg>
+          Use my location
         </button>
         <p id="finder-status" class="mt-2 text-xs text-slate" role="status" aria-live="polite"></p>
       </div>
@@ -123,7 +141,7 @@ const payload = campuses.map((c) => ({
     const countEl = $("#result-count");
     const noneEl = $("#no-results");
 
-    let state = { program: "", stateCode: "", origin: null };
+    let state = { program: "", stateCode: "", origin: null, radius: 25 };
     let map = null;
     let markers = {};
 
@@ -144,6 +162,7 @@ const payload = campuses.map((c) => ({
         list = list
           .map((c) => ({ ...c, dist: c.lat != null ? miles(state.origin, { lat: c.lat, lng: c.lng }) : Infinity }))
           .sort((a, b) => a.dist - b.dist);
+        if (state.radius > 0) list = list.filter((c) => c.dist <= state.radius);
       }
       return list;
     }
@@ -172,9 +191,13 @@ const payload = campuses.map((c) => ({
         )
         .join("");
 
+      const radiusNote = state.origin && state.radius > 0 ? ` within ${state.radius} miles` : "";
       countEl.textContent = COMPACT
-        ? (state.origin ? `Nearest ${list.length} of ${all.length} campuses` : "")
-        : `${all.length} campus${all.length === 1 ? "" : "es"}${state.origin ? ", nearest first" : ""}`;
+        ? (state.origin ? `Nearest ${list.length} of ${campuses.length} campuses` : "")
+        : `${all.length} campus${all.length === 1 ? "" : "es"}${radiusNote}${state.origin && !radiusNote ? ", nearest first" : ""}`;
+      noneEl.textContent = state.origin && state.radius > 0
+        ? `No campuses within ${state.radius} miles. Try a wider radius.`
+        : "No campuses match those filters. Try clearing the program filter or widening your search.";
       noneEl.classList.toggle("hidden", COMPACT || all.length > 0);
 
       if (map) {
@@ -233,9 +256,17 @@ const payload = campuses.map((c) => ({
         return;
       }
       state.origin = { lat: hit[0], lng: hit[1] };
+      showRadius();
       statusEl.textContent = `Showing campuses nearest ${raw}.`;
       render();
     }
+    const radiusSel = $("#radius-select");
+    radiusSel?.addEventListener("change", () => {
+      state.radius = Number(radiusSel.value) || 0;
+      render();
+    });
+    function showRadius() { $("#radius-wrap")?.classList.remove("hidden"); }
+
     $("#zip-go").addEventListener("click", useZip);
     $("#zip-input").addEventListener("keydown", (e) => { if (e.key === "Enter") useZip(); });
 
@@ -245,10 +276,18 @@ const payload = campuses.map((c) => ({
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           state.origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          showRadius();
           statusEl.textContent = "Showing campuses nearest you.";
           render();
         },
-        () => { statusEl.textContent = "Couldn't get your location — try a ZIP code instead."; }
+        (err) => {
+          const why =
+            err.code === 1 ? "Location permission was denied — you can re-enable it in your browser's site settings, or use a ZIP code."
+          : err.code === 2 ? "Your location isn't available right now — try a ZIP code instead."
+          : "Location timed out — try a ZIP code instead.";
+          statusEl.textContent = why;
+        },
+        { timeout: 10000, maximumAge: 300000 }
       );
     });
 

@@ -176,15 +176,16 @@ const mapsHref = campus.address
       {(instagramUrl || campus.facebook) && (
         <div>
           <dt class="text-xs font-semibold tracking-wider text-ink uppercase">Follow</dt>
-          <dd class="mt-1.5 flex items-center gap-3">
+          <dd class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-2">
             {instagramUrl && (
               <a href={instagramUrl} target="_blank" rel="noopener noreferrer"
-                 class="text-slate hover:text-teal-500" aria-label={`${campus.name} on Instagram`}>
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                 class="inline-flex items-center gap-1.5 text-sm text-slate hover:text-teal-500">
+                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                   <rect x="2" y="2" width="20" height="20" rx="5" />
                   <circle cx="12" cy="12" r="4" />
                   <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
                 </svg>
+                <span>@{campus.instagram.replace(/^@/, "")}</span>
               </a>
             )}
             {campus.facebook && (
@@ -205,12 +206,12 @@ const mapsHref = campus.address
   {hos?.name && (
     <section class="mx-auto max-w-5xl px-6 lg:px-8 py-16">
       <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">{hos.title ?? "Head of School"}</p>
-      <div class="mt-6 grid gap-8 sm:grid-cols-[200px_1fr] items-start">
+      <div class="mt-6 grid gap-8 sm:grid-cols-[260px_1fr] items-start">
         {hos.photoUrl ? (
-          <img src={hos.photoUrl} alt={hos.name} width="200" height="200" class="rounded-2xl w-full sm:w-[200px] h-[200px] object-cover object-top" />
+          <img src={hos.photoUrl} alt={hos.name} width="260" height="300" class="rounded-2xl w-full sm:w-[260px] h-[300px] object-cover object-top" />
         ) : (
-          <div class="rounded-2xl w-full sm:w-[200px] h-[200px] bg-teal-light flex items-center justify-center">
-            <span class="font-serif text-4xl text-teal-300">{hos.name.charAt(0)}</span>
+          <div class="rounded-2xl w-full sm:w-[260px] h-[300px] bg-teal-light flex items-center justify-center">
+            <span class="font-serif text-5xl text-teal-300">{hos.name.charAt(0)}</span>
           </div>
         )}
         <div>

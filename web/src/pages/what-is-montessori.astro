@@ -5,7 +5,7 @@ import Layout from "../layouts/Layout.astro";
 import FindCampusCta from "../components/FindCampusCta.astro";
 import FaqAccordion from "../components/FaqAccordion.astro";
 import { sanityClient, urlFor } from "../lib/sanity";
-import { MONTESSORI_PAGE_QUERY } from "../lib/queries";
+import { MONTESSORI_PAGE_QUERY, FAQS_BY_TOPIC_QUERY } from "../lib/queries";
 
 const fallback = {
   eyebrow: "The Innovator & Her Methods",
@@ -29,7 +29,10 @@ const fallback = {
 const data = sanityClient ? ((await sanityClient.fetch(MONTESSORI_PAGE_QUERY)) ?? fallback) : fallback;
 const portraitUrl = data.portraitImage ? urlFor(data.portraitImage, { width: 800 }) : "/images/core/maria-montessori.webp";
 
-const answeredFaqs = (data.faqs ?? []).filter((f: any) => f.answer?.trim());
+const faqs = sanityClient
+  ? ((await sanityClient.fetch(FAQS_BY_TOPIC_QUERY, { topic: "montessori" })) ?? [])
+  : [];
+const answeredFaqs = faqs.filter((f: any) => f.answer?.trim());
 const faqSchema = answeredFaqs.length
   ? {
       "@context": "https://schema.org",
@@ -75,9 +78,14 @@ const faqSchema = answeredFaqs.length
     <div class="mt-14 space-y-14">
       {data.features.map((f: any, i: number) => (
         <div class={`grid gap-8 lg:grid-cols-2 items-center ${i % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""}`}>
-          <div class="rounded-2xl bg-teal-light h-56 flex items-center justify-center">
-            <span class="font-serif text-5xl text-teal-300">{i + 1}</span>
-          </div>
+          {f.image ? (
+            <img src={urlFor(f.image, { width: 800 })} alt={f.title} width="800" height="224"
+                 class="rounded-2xl w-full h-56 object-cover" loading="lazy" />
+          ) : (
+            <div class="rounded-2xl bg-teal-light h-56 flex items-center justify-center">
+              <span class="font-serif text-5xl text-teal-300">{i + 1}</span>
+            </div>
+          )}
           <div>
             <h3 class="font-serif text-xl text-ink">{f.title}</h3>
             {f.description.split("\n\n").map((p: string) => (
@@ -100,10 +108,10 @@ const faqSchema = answeredFaqs.length
     </div>
   </section>
 
-  {data.faqs?.length > 0 && (
+  {answeredFaqs.length > 0 && (
     <section class="mx-auto max-w-3xl px-6 lg:px-8 py-16">
       <h2 class="font-serif text-3xl text-ink text-center mb-8">Frequently Asked Questions</h2>
-      <FaqAccordion faqs={data.faqs} />
+      <FaqAccordion faqs={answeredFaqs} />
     </section>
   )}
 

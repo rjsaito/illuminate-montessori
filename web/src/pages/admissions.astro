@@ -5,7 +5,7 @@ import Layout from "../layouts/Layout.astro";
 import FindCampusCta from "../components/FindCampusCta.astro";
 import FaqAccordion from "../components/FaqAccordion.astro";
 import { sanityClient } from "../lib/sanity";
-import { ADMISSIONS_PAGE_QUERY } from "../lib/queries";
+import { ADMISSIONS_PAGE_QUERY, FAQS_BY_TOPIC_QUERY } from "../lib/queries";
 
 const fallback = {
   heading: "Admissions.",
@@ -37,8 +37,10 @@ const fallback = {
 
 const data = sanityClient ? ((await sanityClient.fetch(ADMISSIONS_PAGE_QUERY)) ?? fallback) : fallback;
 
-// Only questions that actually have answers belong in FAQ schema.
-const answeredFaqs = (data.faqs ?? []).filter((f: any) => f.answer?.trim());
+const faqs = sanityClient
+  ? ((await sanityClient.fetch(FAQS_BY_TOPIC_QUERY, { topic: "admissions" })) ?? [])
+  : [];
+const answeredFaqs = faqs.filter((f: any) => f.answer?.trim());
 const faqSchema = answeredFaqs.length
   ? {
       "@context": "https://schema.org",
@@ -117,10 +119,10 @@ const faqSchema = answeredFaqs.length
     </div>
   </section>
 
-  {data.faqs?.length > 0 && (
+  {answeredFaqs.length > 0 && (
     <section class="mx-auto max-w-3xl px-6 lg:px-8 py-16">
       <h2 class="font-serif text-3xl text-ink text-center mb-8">Frequently Asked Questions</h2>
-      <FaqAccordion faqs={data.faqs} />
+      <FaqAccordion faqs={answeredFaqs} />
     </section>
   )}
 

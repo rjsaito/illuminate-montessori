@@ -1,6 +1,8 @@
 ---
 import "../styles/global.css";
 import { getAllCampuses } from "../lib/campuses";
+import { sanityClient } from "../lib/sanity";
+import { ALL_PROGRAMS_QUERY } from "../lib/queries";
 
 interface Props {
   title: string;
@@ -29,8 +31,11 @@ const findCampuses = campuses.filter((c) => c.showOnFindCampus !== false && c.re
 const texasCampuses = campuses.filter((c) => c.region === "Texas");
 const socialCampuses = campuses.filter((c) => c.instagram);
 
+const allPrograms = sanityClient ? ((await sanityClient.fetch(ALL_PROGRAMS_QUERY)) ?? []) : [];
+const offeredSlugs = new Set(campuses.flatMap((c) => (c.programs ?? []).map((p: any) => p.slug)));
+const navPrograms = allPrograms.filter((p: any) => offeredSlugs.has(p.slug));
+
 const navLinks = [
-  { label: "Programs", href: "/programs/" },
   { label: "What is Montessori?", href: "/what-is-montessori/" },
   { label: "Admissions", href: "/admissions/" },
   { label: "Tuition", href: "/tuition/" },
@@ -102,15 +107,18 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
         </a>
 
         <nav aria-label="Main" class="hidden lg:flex items-center gap-8 text-sm font-medium text-ink/80">
-          <div class="relative" data-dropdown>
+          {/* Campuses and Programs share one pattern: the label is a link to the
+              overview page, the chevron is a separate control that opens the list. */}
+          <div class="relative flex items-center gap-1" data-dropdown>
+            <a href="/our-schools/" class="hover:text-teal-500 transition-colors">Campuses</a>
             <button
               type="button"
-              class="flex items-center gap-1 hover:text-teal-500 transition-colors"
+              class="p-1 -m-1 hover:text-teal-500 transition-colors"
               aria-expanded="false"
               aria-haspopup="true"
+              aria-label="Open campus list"
               data-dropdown-trigger
             >
-              Find Your Campus
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </button>
             <div
@@ -121,9 +129,35 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
                 <a href={`/${c.slug}/`} class="block px-4 py-2 text-sm hover:bg-teal-light hover:text-teal-600">{c.name}</a>
               ))}
               <div class="my-1 border-t border-black/5"></div>
-              <a href="/our-schools/" class="block px-4 py-2 text-sm font-medium text-teal-500 hover:bg-teal-light">See All Campuses</a>
+              <a href="/our-schools/" class="block px-4 py-2 text-sm font-medium text-teal-500 hover:bg-teal-light">See all campuses</a>
             </div>
           </div>
+
+          {navPrograms.length > 0 && (
+            <div class="relative flex items-center gap-1" data-dropdown>
+              <a href="/programs/" class="hover:text-teal-500 transition-colors">Programs</a>
+              <button
+                type="button"
+                class="p-1 -m-1 hover:text-teal-500 transition-colors"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Open program list"
+                data-dropdown-trigger
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+              </button>
+              <div
+                class="hidden absolute left-0 top-full w-60 rounded-xl border border-black/5 bg-white py-2 shadow-lg"
+                data-dropdown-menu
+              >
+                {navPrograms.map((p: any) => (
+                  <a href={`/programs/${p.slug}/`} class="block px-4 py-2 text-sm hover:bg-teal-light hover:text-teal-600">{p.name}</a>
+                ))}
+                <div class="my-1 border-t border-black/5"></div>
+                <a href="/programs/" class="block px-4 py-2 text-sm font-medium text-teal-500 hover:bg-teal-light">All programs</a>
+              </div>
+            </div>
+          )}
 
           {navLinks.map((link) => (
             <a href={link.href} class="hover:text-teal-500 transition-colors">{link.label}</a>
@@ -182,10 +216,22 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
           {navLinks.map((link) => (
             <a href={link.href} class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">{link.label}</a>
           ))}
-          <a href="/our-schools/" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">Find Your Campus</a>
+          <a href="/our-schools/" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">Campuses</a>
+
+          {navPrograms.length > 0 && (
+            <details class="rounded-lg">
+              <summary class="cursor-pointer list-none rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">Programs</summary>
+              <div class="pl-3 pb-2">
+                {navPrograms.map((p: any) => (
+                  <a href={`/programs/${p.slug}/`} class="block rounded-lg px-3 py-2 text-sm text-slate hover:bg-cream">{p.name}</a>
+                ))}
+                <a href="/programs/" class="block rounded-lg px-3 py-2 text-sm font-medium text-teal-500 hover:bg-cream">All programs</a>
+              </div>
+            </details>
+          )}
 
           <details class="rounded-lg">
-            <summary class="cursor-pointer list-none rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">Campuses</summary>
+            <summary class="cursor-pointer list-none rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">Jump to a campus</summary>
             <div class="pl-3 pb-2">
               {findCampuses.map((c) => (
                 <a href={`/${c.slug}/`} class="block rounded-lg px-3 py-2 text-sm text-slate hover:bg-cream">{c.name}</a>

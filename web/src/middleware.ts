@@ -19,7 +19,9 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
   response.headers.set("x-content-type-options", "nosniff");
   response.headers.set("referrer-policy", "strict-origin-when-cross-origin");
   response.headers.set("x-frame-options", "SAMEORIGIN");
-  response.headers.set("permissions-policy", "geolocation=(), microphone=(), camera=()");
+  // geolocation=(self) allows OUR pages to ask; an empty list would block the
+  // campus finder's "use my location" button along with everyone else's.
+  response.headers.set("permissions-policy", "geolocation=(self), microphone=(), camera=()");
 
   return response;
 };

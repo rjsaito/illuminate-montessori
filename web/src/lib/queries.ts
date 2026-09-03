@@ -1,7 +1,7 @@
 export const HOME_PAGE_QUERY = /* groq */ `*[_type == "homePage"][0]`;
 export const ABOUT_PAGE_QUERY = /* groq */ `*[_type == "aboutPage"][0]{..., heroImage}`;
 export const ADMISSIONS_PAGE_QUERY = /* groq */ `*[_type == "admissionsPage"][0]`;
-export const MONTESSORI_PAGE_QUERY = /* groq */ `*[_type == "montessoriPage"][0]{..., portraitImage}`;
+export const MONTESSORI_PAGE_QUERY = /* groq */ `*[_type == "montessoriPage"][0]{..., portraitImage, features[]{title, description, image}}`;
 export const CONTACT_PAGE_QUERY = /* groq */ `*[_type == "contactPage"][0]`;
 export const OUR_SCHOOLS_PAGE_QUERY = /* groq */ `*[_type == "ourSchoolsPage"][0]`;
 
@@ -32,3 +32,6 @@ export const TESTIMONIALS_QUERY = /* groq */ `*[_type == "testimonial" && ($camp
 
 export const FEATURED_TESTIMONIALS_QUERY = /* groq */ `*[_type == "testimonial" && featured == true]
   | order(order asc){ quote, authorName, authorRole, "campus": campus->name }`;
+
+export const FAQS_BY_TOPIC_QUERY = /* groq */ `*[_type == "faq" && $topic in topics]
+  | order(order asc){ question, answer }`;

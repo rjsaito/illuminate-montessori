@@ -8,6 +8,7 @@ import ourSchoolsPage from "./ourSchoolsPage";
 import campus from "./campus";
 import program from "./program";
 import testimonial from "./testimonial";
+import faq from "./faq";
 
 export const schemaTypes = [
   homePage,
@@ -20,4 +21,5 @@ export const schemaTypes = [
   campus,
   program,
   testimonial,
+  faq,
 ];
