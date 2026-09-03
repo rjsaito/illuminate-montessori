@@ -2,9 +2,9 @@
 export const prerender = false;
 
 import Layout from "../layouts/Layout.astro";
-import CampusCard from "../components/CampusCard.astro";
+import CampusFinder from "../components/CampusFinder.astro";
 import { sanityClient } from "../lib/sanity";
-import { HOME_PAGE_QUERY, FEATURED_TESTIMONIALS_QUERY } from "../lib/queries";
+import { HOME_PAGE_QUERY, FEATURED_TESTIMONIALS_QUERY, ALL_PROGRAMS_QUERY } from "../lib/queries";
 import Testimonials from "../components/Testimonials.astro";
 import { getAllCampuses } from "../lib/campuses";
 
@@ -39,9 +39,9 @@ const allCampuses = await getAllCampuses();
 const featuredTestimonials = sanityClient
   ? ((await sanityClient.fetch(FEATURED_TESTIMONIALS_QUERY)) ?? [])
   : [];
-const findCampuses = allCampuses.filter((c) => c.showOnFindCampus !== false && c.region !== "Texas");
-const vaCampuses = findCampuses.filter((c) => c.region === "Virginia");
-const maCampuses = findCampuses.filter((c) => c.region === "Massachusetts");
+const programs = sanityClient ? ((await sanityClient.fetch(ALL_PROGRAMS_QUERY)) ?? []) : [];
+const offered = new Set(allCampuses.flatMap((c) => (c.programs ?? []).map((p: any) => p.slug)));
+const filterPrograms = programs.filter((p: any) => offered.has(p.slug));
 ---
 
 <Layout
@@ -112,27 +112,8 @@ const maCampuses = findCampuses.filter((c) => c.region === "Massachusetts");
     <h2 class="mt-4 font-serif text-3xl sm:text-4xl text-ink max-w-xl">{data.campusesHeading}</h2>
     <p class="mt-4 max-w-2xl text-slate leading-relaxed">{data.campusesIntro}</p>
 
-    {vaCampuses.length > 0 && (
-      <div class="mt-10">
-        <p class="text-sm font-medium text-ink mb-3">{vaCampuses.length} Campuses in Virginia</p>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {vaCampuses.map((c) => <CampusCard name={c.name} slug={c.slug} region={c.region} />)}
-        </div>
-      </div>
-    )}
-    {maCampuses.length > 0 && (
-      <div class="mt-8">
-        <p class="text-sm font-medium text-ink mb-3">{maCampuses.length} Campuses in Massachusetts</p>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {maCampuses.map((c) => <CampusCard name={c.name} slug={c.slug} region={c.region} />)}
-        </div>
-      </div>
-    )}
-
-    <div class="mt-10 text-center">
-      <a href="/our-schools/" class="inline-flex items-center rounded-full border border-black/10 px-7 py-3 text-sm font-medium text-ink hover:border-teal-300 transition-colors">
-        See All {findCampuses.length} Campuses
-      </a>
+    <div class="mt-10">
+      <CampusFinder campuses={allCampuses} programs={filterPrograms} compact={true} />
     </div>
   </section>
 
@@ -152,8 +133,8 @@ const maCampuses = findCampuses.filter((c) => c.region === "Massachusetts");
     <div class="mx-auto max-w-3xl px-6 lg:px-8 py-20 text-center">
       <h2 class="font-serif text-3xl sm:text-4xl text-white">{data.closingHeading}</h2>
       <p class="mt-4 text-teal-100 leading-relaxed">{data.closingText}</p>
-      <a href="/contact/" class="mt-8 inline-flex items-center rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-teal-600 hover:bg-cream transition-colors">
-        Schedule a Tour
+      <a href="/our-schools/" class="mt-8 inline-flex items-center rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-teal-600 hover:bg-cream transition-colors">
+        Find Your Campus &amp; Book a Tour
       </a>
     </div>
   </section>
