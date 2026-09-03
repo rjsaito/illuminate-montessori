@@ -3,7 +3,7 @@ import type { APIRoute } from "astro";
 export const prerender = false;
 
 export const GET: APIRoute = ({ site }) => {
-  const origin = (site?.href ?? "https://illuminate-tuition.vercel.app/").replace(/\/$/, "");
+  const origin = (site?.href ?? "https://illuminate-montessori.vercel.app/").replace(/\/$/, "");
 
   // AI answer engines are named explicitly so the intent to allow them is
   // unambiguous — being cited by them is a growth channel for a local school.

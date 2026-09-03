@@ -17,7 +17,7 @@ const STATIC_PATHS = [
 ];
 
 export const GET: APIRoute = async ({ site }) => {
-  const origin = (site?.href ?? "https://illuminate-tuition.vercel.app/").replace(/\/$/, "");
+  const origin = (site?.href ?? "https://illuminate-montessori.vercel.app/").replace(/\/$/, "");
   const campuses = await getAllCampuses();
   const programs = sanityClient ? ((await sanityClient.fetch(ALL_PROGRAMS_QUERY)) ?? []) : [];
   const offered = new Set(campuses.flatMap((c: any) => (c.programs ?? []).map((p: any) => p.slug)));

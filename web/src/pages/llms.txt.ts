@@ -11,7 +11,7 @@ export const prerender = false;
  * near me" style questions without making them parse the whole site.
  */
 export const GET: APIRoute = async ({ site }) => {
-  const origin = (site?.href ?? "https://illuminate-tuition.vercel.app/").replace(/\/$/, "");
+  const origin = (site?.href ?? "https://illuminate-montessori.vercel.app/").replace(/\/$/, "");
   const campuses = await getAllCampuses();
   const programs = sanityClient ? ((await sanityClient.fetch(ALL_PROGRAMS_QUERY)) ?? []) : [];
 
