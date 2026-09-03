@@ -24,4 +24,8 @@ export const structure: StructureResolver = (S) =>
         .title("Campuses")
         .id("campus")
         .child(S.documentTypeList("campus").title("Campuses")),
+      S.listItem()
+        .title("Programs")
+        .id("program")
+        .child(S.documentTypeList("program").title("Programs")),
     ]);

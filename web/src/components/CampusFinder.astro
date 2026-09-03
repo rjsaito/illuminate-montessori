@@ -1,0 +1,258 @@
+---
+import type { CampusData } from "../lib/campuses";
+
+interface Props {
+  campuses: CampusData[];
+  programs: { name: string; slug: string }[];
+}
+
+const { campuses, programs } = Astro.props;
+
+const stateAbbr: Record<string, string> = { Virginia: "VA", Massachusetts: "MA", Texas: "TX" };
+
+// Everything the client-side filter needs, serialized once.
+const payload = campuses.map((c) => ({
+  slug: c.slug,
+  name: c.name,
+  region: c.region,
+  state: stateAbbr[c.region] ?? c.region,
+  city: c.city ?? "",
+  address: c.address ?? "",
+  phone: c.phone ?? "",
+  agesServed: c.agesServed ?? "",
+  lat: c.location?.lat ?? null,
+  lng: c.location?.lng ?? null,
+  programs: (c.programs ?? []).map((p) => p.slug),
+  programNames: (c.programs ?? []).map((p) => p.name),
+}));
+---
+
+<div data-campus-finder>
+  <!-- Controls -->
+  <div class="rounded-2xl border border-black/5 bg-white p-5 sm:p-6">
+    <div class="grid gap-5 lg:grid-cols-[1fr_auto]">
+      <div>
+        <label class="text-xs font-semibold tracking-wider text-ink uppercase" for="program-filter">Program</label>
+        <div class="mt-2.5 flex flex-wrap gap-2" id="program-filter" role="group" aria-label="Filter by program">
+          <button type="button" data-program="" aria-pressed="true"
+            class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors border-teal-400 bg-teal-400 text-white">
+            All programs
+          </button>
+          {programs.map((p) => (
+            <button type="button" data-program={p.slug} aria-pressed="false"
+              class="rounded-full border border-black/10 px-3.5 py-1.5 text-xs font-medium text-ink hover:border-teal-300 transition-colors">
+              {p.name}
+            </button>
+          ))}
+        </div>
+
+        <div class="mt-5 flex flex-wrap gap-2" id="state-filter" role="group" aria-label="Filter by state">
+          <button type="button" data-state="" aria-pressed="true"
+            class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors border-teal-400 bg-teal-400 text-white">
+            All states
+          </button>
+          {["VA", "MA", "TX"].map((s) => (
+            <button type="button" data-state={s} aria-pressed="false"
+              class="rounded-full border border-black/10 px-3.5 py-1.5 text-xs font-medium text-ink hover:border-teal-300 transition-colors">
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div class="lg:w-72">
+        <label class="text-xs font-semibold tracking-wider text-ink uppercase" for="zip-input">Near you</label>
+        <div class="mt-2.5 flex gap-2">
+          <input id="zip-input" type="text" inputmode="numeric" placeholder="ZIP code"
+            class="w-full rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-teal-400 focus:outline-none" />
+          <button type="button" id="zip-go"
+            class="rounded-lg bg-teal-400 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500 transition-colors">Go</button>
+        </div>
+        <button type="button" id="geo-btn" class="mt-2 text-xs font-medium text-teal-500 hover:text-teal-600">
+          Or use my current location
+        </button>
+        <p id="finder-status" class="mt-2 text-xs text-slate" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div id="campus-map" class="mt-6 h-[420px] w-full rounded-2xl border border-black/5 bg-teal-light z-0"></div>
+
+  <!-- Results -->
+  <p class="mt-6 text-sm text-slate" id="result-count"></p>
+  <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" id="campus-results"></div>
+  <p id="no-results" class="mt-6 hidden rounded-2xl bg-cream p-6 text-center text-sm text-slate">
+    No campuses match those filters. Try clearing the program filter or widening your search.
+  </p>
+</div>
+
+<script is:inline define:vars={{ payload }}>
+  window.__CAMPUSES__ = payload;
+</script>
+
+<script>
+  import "leaflet/dist/leaflet.css";
+
+  // Real 5-digit ZIP centroids (GeoNames, public domain) for the states served and
+  // their neighbours. Loaded on demand so it never weighs down the initial page.
+  let ZIPS = null;
+  async function loadZips() {
+    if (!ZIPS) ZIPS = (await import("../lib/zipCentroids.json")).default;
+    return ZIPS;
+  }
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const root = $("[data-campus-finder]");
+  if (root) {
+    const campuses = window.__CAMPUSES__ || [];
+    const statusEl = $("#finder-status");
+    const resultsEl = $("#campus-results");
+    const countEl = $("#result-count");
+    const noneEl = $("#no-results");
+
+    let state = { program: "", stateCode: "", origin: null };
+    let map = null;
+    let markers = {};
+
+    const miles = (a, b) => {
+      const R = 3958.8, toRad = (d) => (d * Math.PI) / 180;
+      const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+      const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(s));
+    };
+
+    function visible() {
+      let list = campuses.filter(
+        (c) =>
+          (!state.program || c.programs.includes(state.program)) &&
+          (!state.stateCode || c.state === state.stateCode)
+      );
+      if (state.origin) {
+        list = list
+          .map((c) => ({ ...c, dist: c.lat != null ? miles(state.origin, { lat: c.lat, lng: c.lng }) : Infinity }))
+          .sort((a, b) => a.dist - b.dist);
+      }
+      return list;
+    }
+
+    function render() {
+      const list = visible();
+      resultsEl.innerHTML = list
+        .map(
+          (c) => `
+        <a href="/${c.slug}/" class="group block rounded-2xl border border-black/5 bg-white p-5 hover:border-teal-300 hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] transition-all">
+          <div class="flex items-baseline justify-between gap-3">
+            <p class="font-serif text-lg text-ink">${c.name}</p>
+            <span class="text-xs text-slate whitespace-nowrap">${
+              c.dist != null && isFinite(c.dist) ? c.dist.toFixed(1) + " mi" : c.state
+            }</span>
+          </div>
+          ${c.city ? `<p class="mt-0.5 text-xs text-slate">${c.city}, ${c.state}</p>` : ""}
+          ${c.agesServed ? `<p class="mt-2 text-xs text-slate">Ages ${c.agesServed}</p>` : ""}
+          <p class="mt-3 flex flex-wrap gap-1.5">${c.programNames
+            .map((n) => `<span class="rounded-full bg-teal-light px-2.5 py-1 text-[11px] font-medium text-teal-600">${n}</span>`)
+            .join("")}</p>
+          <span class="mt-4 inline-block text-xs font-medium text-teal-500 group-hover:text-teal-600">Schedule a Tour →</span>
+        </a>`
+        )
+        .join("");
+
+      countEl.textContent = `${list.length} campus${list.length === 1 ? "" : "es"}${
+        state.origin ? ", nearest first" : ""
+      }`;
+      noneEl.classList.toggle("hidden", list.length > 0);
+
+      if (map) {
+        const shown = new Set(list.map((c) => c.slug));
+        Object.entries(markers).forEach(([slug, m]) => {
+          if (shown.has(slug)) m.addTo(map);
+          else map.removeLayer(m);
+        });
+        const pts = list.filter((c) => c.lat != null).map((c) => [c.lat, c.lng]);
+        if (state.origin) pts.push([state.origin.lat, state.origin.lng]);
+        if (pts.length) map.fitBounds(pts, { padding: [40, 40], maxZoom: state.origin ? 10 : 8 });
+      }
+    }
+
+    function setPressed(container, attr, value) {
+      container.querySelectorAll("button").forEach((b) => {
+        const on = (b.getAttribute(attr) || "") === value;
+        b.setAttribute("aria-pressed", String(on));
+        b.className = on
+          ? "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors border-teal-400 bg-teal-400 text-white"
+          : "rounded-full border border-black/10 px-3.5 py-1.5 text-xs font-medium text-ink hover:border-teal-300 transition-colors";
+      });
+    }
+
+    $("#program-filter").addEventListener("click", (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      state.program = b.getAttribute("data-program") || "";
+      setPressed($("#program-filter"), "data-program", state.program);
+      render();
+    });
+    $("#state-filter").addEventListener("click", (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      state.stateCode = b.getAttribute("data-state") || "";
+      setPressed($("#state-filter"), "data-state", state.stateCode);
+      render();
+    });
+
+    async function useZip() {
+      const raw = ($("#zip-input").value || "").trim();
+      if (!/^\d{5}$/.test(raw)) {
+        statusEl.textContent = "Enter a 5-digit ZIP code.";
+        return;
+      }
+      statusEl.textContent = "Looking up that ZIP…";
+      const zips = await loadZips();
+      const hit = zips[raw];
+      if (!hit) {
+        statusEl.textContent = "We don't have that ZIP on file — try your current location instead.";
+        return;
+      }
+      state.origin = { lat: hit[0], lng: hit[1] };
+      statusEl.textContent = `Showing campuses nearest ${raw}.`;
+      render();
+    }
+    $("#zip-go").addEventListener("click", useZip);
+    $("#zip-input").addEventListener("keydown", (e) => { if (e.key === "Enter") useZip(); });
+
+    $("#geo-btn").addEventListener("click", () => {
+      if (!navigator.geolocation) { statusEl.textContent = "Location isn't available in this browser."; return; }
+      statusEl.textContent = "Finding your location…";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          state.origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          statusEl.textContent = "Showing campuses nearest you.";
+          render();
+        },
+        () => { statusEl.textContent = "Couldn't get your location — try a ZIP code instead."; }
+      );
+    });
+
+    // Leaflet is bundled, so there is no third-party script at runtime.
+    (async () => {
+      const L = (await import("leaflet")).default;
+      map = L.map("campus-map", { scrollWheelZoom: false }).setView([38.9, -77.2], 6);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18,
+      }).addTo(map);
+      const icon = L.divIcon({
+        className: "",
+        html: '<div style="width:26px;height:26px;border-radius:50%;background:#4A9B94;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>',
+        iconSize: [26, 26], iconAnchor: [13, 13],
+      });
+      campuses.forEach((c) => {
+        if (c.lat == null) return;
+        markers[c.slug] = L.marker([c.lat, c.lng], { icon, title: c.name }).bindPopup(
+          `<strong>${c.name}</strong><br>${c.city ? c.city + ", " + c.state : c.state}<br><a href="/${c.slug}/">View campus →</a>`
+        );
+      });
+      render();
+    })().catch(() => { $("#campus-map").style.display = "none"; });
+
+    render();
+  }
+</script>

@@ -2,9 +2,9 @@
 export const prerender = false;
 
 import Layout from "../layouts/Layout.astro";
-import CampusCard from "../components/CampusCard.astro";
+import CampusFinder from "../components/CampusFinder.astro";
 import { sanityClient } from "../lib/sanity";
-import { OUR_SCHOOLS_PAGE_QUERY } from "../lib/queries";
+import { OUR_SCHOOLS_PAGE_QUERY, ALL_PROGRAMS_QUERY } from "../lib/queries";
 import { getAllCampuses } from "../lib/campuses";
 
 const fallback = {
@@ -15,41 +15,48 @@ const fallback = {
 
 const data = sanityClient ? ((await sanityClient.fetch(OUR_SCHOOLS_PAGE_QUERY)) ?? fallback) : fallback;
 const allCampuses = await getAllCampuses();
-const findCampuses = allCampuses.filter((c) => c.showOnFindCampus !== false && c.region !== "Texas");
-const vaCampuses = findCampuses.filter((c) => c.region === "Virginia");
-const maCampuses = findCampuses.filter((c) => c.region === "Massachusetts");
+const programs = sanityClient ? ((await sanityClient.fetch(ALL_PROGRAMS_QUERY)) ?? []) : [];
+
+// Programs that at least one campus actually offers — no dead filter chips.
+const offered = new Set(allCampuses.flatMap((c) => (c.programs ?? []).map((p: any) => p.slug)));
+const filterPrograms = programs.filter((p: any) => offered.has(p.slug));
+
+const byState = ["Virginia", "Massachusetts", "Texas"].map((r) => ({
+  region: r,
+  count: allCampuses.filter((c) => c.region === r).length,
+}));
+const summary = byState.filter((s) => s.count > 0).map((s) => `${s.count} in ${s.region}`).join(", ");
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Illuminate Montessori campuses",
+  numberOfItems: allCampuses.length,
+  itemListElement: allCampuses.map((c, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    url: new URL(`/${c.slug}/`, Astro.site).href,
+    name: `Illuminate Montessori at ${c.name}`,
+  })),
+};
 ---
 
 <Layout
   title="Our Schools"
-  metaTitle="Find Your Campus — Montessori Schools in VA & MA | Illuminate Montessori"
-  description="Find an Illuminate Montessori campus near you. Browse our schools across Virginia and Massachusetts and schedule a weekday tour."
+  metaTitle="Find a Montessori School Near You | Illuminate Montessori"
+  description={`Find an Illuminate Montessori campus near you — ${allCampuses.length} schools (${summary}). Filter by program and age, or search by ZIP code.`}
+  schema={schema}
 >
   <section class="bg-cream">
     <div class="mx-auto max-w-3xl px-6 lg:px-8 pt-16 pb-14 text-center">
       <p class="text-xs font-semibold tracking-[0.2em] text-teal-500 uppercase">{data.eyebrow}</p>
       <h1 class="mt-4 font-serif text-4xl sm:text-5xl text-ink leading-tight">{data.heading}</h1>
       <p class="mt-4 text-slate">{data.subheading}</p>
-      <p class="mt-2 text-sm text-slate">Illuminate Montessori currently operates {findCampuses.length} campuses</p>
+      <p class="mt-3 text-sm text-slate">{allCampuses.length} campuses — {summary}</p>
     </div>
   </section>
 
-  <section class="mx-auto max-w-6xl px-6 lg:px-8 py-16">
-    {vaCampuses.length > 0 && (
-      <div>
-        <p class="text-sm font-medium text-ink mb-4">{vaCampuses.length} campuses in Virginia</p>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {vaCampuses.map((c) => <CampusCard name={c.name} slug={c.slug} region={c.region} />)}
-        </div>
-      </div>
-    )}
-    {maCampuses.length > 0 && (
-      <div class="mt-10">
-        <p class="text-sm font-medium text-ink mb-4">{maCampuses.length} campuses in Massachusetts</p>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {maCampuses.map((c) => <CampusCard name={c.name} slug={c.slug} region={c.region} />)}
-        </div>
-      </div>
-    )}
+  <section class="mx-auto max-w-6xl px-6 lg:px-8 py-12">
+    <CampusFinder campuses={allCampuses} programs={filterPrograms} />
   </section>
 </Layout>

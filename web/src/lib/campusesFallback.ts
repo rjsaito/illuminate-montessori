@@ -10,6 +10,14 @@ export interface CampusData {
   heroImageUrl?: string | null;
   bookingIframeUrl?: string | null;
   showOnFindCampus?: boolean;
+  city?: string;
+  postalCode?: string;
+  agesServed?: string;
+  schoolAgeCare?: boolean;
+  schoolAgeCareNote?: string;
+  location?: { lat: number; lng: number } | null;
+  programs?: { name: string; slug: string; ages?: string; defaultAges?: string; description?: string; order?: number }[];
+  headOfSchool?: { name?: string; title?: string; bio?: string; photoUrl?: string | null } | null;
 }
 
 // Used only if PUBLIC_SANITY_PROJECT_ID is unset (local dev without Sanity connected).

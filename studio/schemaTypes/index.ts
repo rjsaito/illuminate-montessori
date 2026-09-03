@@ -6,6 +6,7 @@ import montessoriPage from "./montessoriPage";
 import contactPage from "./contactPage";
 import ourSchoolsPage from "./ourSchoolsPage";
 import campus from "./campus";
+import program from "./program";
 
 export const schemaTypes = [
   homePage,
@@ -16,4 +17,5 @@ export const schemaTypes = [
   contactPage,
   ourSchoolsPage,
   campus,
+  program,
 ];
