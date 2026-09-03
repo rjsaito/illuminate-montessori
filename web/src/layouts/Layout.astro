@@ -40,6 +40,7 @@ const navLinks = [
   { label: "Admissions", href: "/admissions/" },
   { label: "Tuition", href: "/tuition/" },
   { label: "About", href: "/about/" },
+  { label: "Contact", href: "/contact/" },
 ];
 
 const organizationSchema = {
@@ -101,7 +102,7 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
           <span class="font-wordmark text-[1.6rem] leading-none text-ink">Illuminate</span>
         </a>
 
-        <nav aria-label="Main" class="hidden lg:flex items-center gap-8 text-sm font-medium text-ink/80">
+        <nav aria-label="Main" class="hidden xl:flex items-center gap-6 text-sm font-medium text-ink/80">
           {/* Campuses and Programs share one pattern: the label is a link to the
               overview page, the chevron is a separate control that opens the list. */}
           <div class="relative flex items-center gap-1" data-dropdown>
@@ -183,8 +184,10 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
         </nav>
 
         <div class="flex items-center gap-3">
+          {/* Tours are booked per campus (every campus page has a live booking
+              widget), so this starts at the finder rather than the contact form. */}
           <a
-            href="/contact/"
+            href="/our-schools/"
             class="hidden sm:inline-flex items-center rounded-full bg-teal-400 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors"
           >
             Schedule a Tour
@@ -192,7 +195,7 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
 
           <button
             type="button"
-            class="lg:hidden inline-flex items-center justify-center rounded-lg p-2 text-ink hover:bg-cream"
+            class="xl:hidden inline-flex items-center justify-center rounded-lg p-2 text-ink hover:bg-cream"
             aria-expanded="false"
             aria-controls="mobile-menu"
             aria-label="Open menu"
@@ -206,7 +209,7 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
       </div>
 
       <!-- Mobile menu -->
-      <div id="mobile-menu" class="hidden lg:hidden border-t border-black/5 bg-white" data-mobile-menu>
+      <div id="mobile-menu" class="hidden xl:hidden border-t border-black/5 bg-white" data-mobile-menu>
         <nav aria-label="Mobile" class="mx-auto max-w-7xl px-6 py-4 space-y-1">
           {navLinks.map((link) => (
             <a href={link.href} class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-cream">{link.label}</a>
@@ -245,7 +248,7 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
             </details>
           )}
 
-          <a href="/contact/" class="mt-2 block rounded-full bg-teal-400 px-5 py-3 text-center text-sm font-medium text-white hover:bg-teal-500">
+          <a href="/our-schools/" class="mt-2 block rounded-full bg-teal-400 px-5 py-3 text-center text-sm font-medium text-white hover:bg-teal-500">
             Schedule a Tour
           </a>
         </nav>
