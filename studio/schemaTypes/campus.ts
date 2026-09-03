@@ -69,6 +69,27 @@ export default defineType({
       type: "url",
       group: "contact",
     }),
+    defineField({
+      name: "instagram",
+      title: "Instagram handle",
+      type: "string",
+      description: 'Just the handle, without the @ — e.g. "illuminate_chantilly"',
+      group: "contact",
+    }),
+    defineField({
+      name: "facebook",
+      title: "Facebook page URL",
+      type: "url",
+      group: "contact",
+    }),
+    defineField({
+      name: "googleBusinessUrl",
+      title: "Google Business Profile URL",
+      type: "url",
+      description:
+        "Link families to this campus's Google reviews. Linking out is allowed; copying the review text onto this site is not.",
+      group: "contact",
+    }),
 
     defineField({
       name: "agesServed",

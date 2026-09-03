@@ -27,6 +27,7 @@ const fullTitle = metaTitle ?? `${title} | Illuminate Montessori`;
 const campuses = await getAllCampuses();
 const findCampuses = campuses.filter((c) => c.showOnFindCampus !== false && c.region !== "Texas");
 const texasCampuses = campuses.filter((c) => c.region === "Texas");
+const socialCampuses = campuses.filter((c) => c.instagram);
 
 const navLinks = [
   { label: "Programs", href: "/programs/" },
@@ -242,6 +243,20 @@ const schemaBlocks = [organizationSchema, ...(schema ? (Array.isArray(schema) ? 
           <ul class="mt-3 space-y-2 text-sm">
             <li><a href="mailto:hello@illuminatemontessori.com" class="hover:text-teal-500">hello@illuminatemontessori.com</a></li>
           </ul>
+          {socialCampuses.length > 0 && (
+            <>
+              <p class="mt-5 text-xs font-semibold tracking-wider text-ink uppercase">Follow a campus</p>
+              <ul class="mt-3 space-y-1.5 text-sm">
+                {socialCampuses.map((c) => (
+                  <li>
+                    <a href={`https://instagram.com/${c.instagram.replace(/^@/, "")}`} target="_blank" rel="noopener noreferrer" class="hover:text-teal-500">
+                      {c.name} on Instagram
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       </div>
       <div class="border-t border-black/5">

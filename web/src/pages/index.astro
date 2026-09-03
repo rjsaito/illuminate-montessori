@@ -4,7 +4,8 @@ export const prerender = false;
 import Layout from "../layouts/Layout.astro";
 import CampusCard from "../components/CampusCard.astro";
 import { sanityClient } from "../lib/sanity";
-import { HOME_PAGE_QUERY } from "../lib/queries";
+import { HOME_PAGE_QUERY, FEATURED_TESTIMONIALS_QUERY } from "../lib/queries";
+import Testimonials from "../components/Testimonials.astro";
 import { getAllCampuses } from "../lib/campuses";
 
 const fallback = {
@@ -35,6 +36,9 @@ const fallback = {
 
 const data = sanityClient ? ((await sanityClient.fetch(HOME_PAGE_QUERY)) ?? fallback) : fallback;
 const allCampuses = await getAllCampuses();
+const featuredTestimonials = sanityClient
+  ? ((await sanityClient.fetch(FEATURED_TESTIMONIALS_QUERY)) ?? [])
+  : [];
 const findCampuses = allCampuses.filter((c) => c.showOnFindCampus !== false && c.region !== "Texas");
 const vaCampuses = findCampuses.filter((c) => c.region === "Virginia");
 const maCampuses = findCampuses.filter((c) => c.region === "Massachusetts");
@@ -140,6 +144,8 @@ const maCampuses = findCampuses.filter((c) => c.region === "Massachusetts");
       <p class="mt-4 text-slate leading-relaxed">{data.eventsText}</p>
     </div>
   </section>
+
+  <Testimonials testimonials={featuredTestimonials} />
 
   <!-- Closing CTA -->
   <section class="bg-teal-500">

@@ -18,6 +18,9 @@ export interface CampusData {
   location?: { lat: number; lng: number } | null;
   programs?: { name: string; slug: string; ages?: string; defaultAges?: string; description?: string; order?: number }[];
   headOfSchool?: { name?: string; title?: string; bio?: string; photoUrl?: string | null } | null;
+  instagram?: string;
+  facebook?: string;
+  googleBusinessUrl?: string;
 }
 
 // Used only if PUBLIC_SANITY_PROJECT_ID is unset (local dev without Sanity connected).
